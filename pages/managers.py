@@ -189,11 +189,6 @@ class ContentManager(models.Manager):
             raise ValueError("Ctype cannot contain spaces.")
         if not language:
             language = settings.PAGE_DEFAULT_LANGUAGE
-        # TODO: Remove that dirty hacking
-        if ctype == 'title':
-            return page.title
-        elif ctype == 'slug':
-            return page.slug
 
         frozen = int(bool(page.freeze_date))
         key = self.PAGE_CONTENT_DICT_KEY % (page.id, ctype, frozen)
