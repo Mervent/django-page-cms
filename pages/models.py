@@ -112,6 +112,10 @@ class Page(MPTTModel):
     redirect_to = models.ForeignKey('self', null=True, blank=True,
         related_name='redirected_pages')
 
+    title = models.CharField(_('title'), max_length=200, help_text=_('This title is also used for navigation menu items.'))
+    slug = models.SlugField(_('slug'), max_length=150, help_text=_('This is used to build the URL for this page'))
+    cached_url = models.CharField(_('Cached URL'), max_length=255, blank=True, editable=False, default='', db_index=True)
+
     # Managers
     objects = PageManager()
 
@@ -134,9 +138,14 @@ class Page(MPTTModel):
         self._is_first_root = None
         self._complete_slug = None
         super(Page, self).__init__(*args, **kwargs)
+        self._original_cached_url = self.cached_url
 
     def save(self, *args, **kwargs):
-        """Override the default ``save`` method."""
+        """
+            Overridden save method which updates the ``cached_url`` attribute of
+            this page and all subpages. Quite expensive when called with a page
+            high up in the tree.
+        """
         if not self.status:
             self.status = self.DRAFT
         # Published pages should always have a publication date
@@ -155,6 +164,44 @@ class Page(MPTTModel):
         # fix sites many-to-many link when the're hidden from the form
         if settings.PAGE_HIDE_SITES and self.sites.count() == 0:
             self.sites.add(Site.objects.get(pk=global_settings.SITE_ID))
+
+
+
+        cached_page_urls = {}
+
+        # determine own URL
+        if self.redirect_to_url:
+            self.cached_url = self.override_url
+        elif self.is_root_node():
+            self.cached_url = '/%s/' % self.slug
+        else:
+            self.cached_url = '%s%s/' % (self.parent.cached_url, self.slug)
+
+        cached_page_urls[self.id] = self.cached_url
+        super(Page, self).save(*args, **kwargs)
+
+        # If our cached URL changed we need to update all descendants to
+        # reflect the changes. Since this is a very expensive operation
+        # on large sites we'll check whether our cached_url actually changed
+        # or if the updates weren't navigation related:
+        if self.cached_url == self._original_cached_url:
+            return
+
+        pages = self.get_descendants().order_by('lft')
+
+        for page in pages:
+            if page.redirect_to_url:
+                page.cached_url = page.override_url
+            else:
+                # cannot be root node by definition
+                page.cached_url = '%s%s/' % (
+                    cached_page_urls[page.parent_id],
+                    page.slug)
+
+            cached_page_urls[page.id] = page.cached_url
+            super(Page, page).save()  # do not recurse
+
+    save.alters_data = True
 
     def _get_calculated_status(self):
         """Get the calculated status of the page based on
@@ -341,6 +388,12 @@ class Page(MPTTModel):
         :param fallback: if ``True``, the content will also be searched in \
         other languages.
         """
+        # TO-DO: Remove that dirty hacking
+        if ctype == 'slug':
+            return self.slug
+        elif ctype == 'title':
+            return self.title
+
         return Content.objects.get_content(self, language, ctype,
             language_fallback)
 
@@ -412,35 +465,7 @@ class Page(MPTTModel):
         all parent's slugs.
 
         :param language: the wanted slug language."""
-        if not language:
-            language = settings.PAGE_DEFAULT_LANGUAGE
-
-        if self._complete_slug and language in self._complete_slug:
-            return self._complete_slug[language]
-
-        self._complete_slug = cache.get(self.PAGE_URL_KEY % (self.id))
-        if self._complete_slug is None:
-            self._complete_slug = {}
-        elif language in self._complete_slug:
-            return self._complete_slug[language]
-
-        if hideroot and settings.PAGE_HIDE_ROOT_SLUG and self.is_first_root():
-            url = ''
-        else:
-            url = '%s' % self.slug(language)
-
-        key = self.ANCESTORS_KEY % self.id
-        ancestors = cache.get(key, None)
-        if ancestors is None:
-            ancestors = self.get_ancestors(ascending=True)
-            cache.set(key, ancestors)
-
-        for ancestor in ancestors:
-            url = ancestor.slug(language) + '/' + url
-
-        self._complete_slug[language] = url
-        cache.set(self.PAGE_URL_KEY % (self.id), self._complete_slug)
-        return url
+        return self.cached_url
 
     def slug_with_level(self, language=None):
         """Display the slug of the page prepended with insecable
@@ -450,34 +475,6 @@ class Page(MPTTModel):
             for n in range(0, self.level):
                 level += '&nbsp;&nbsp;&nbsp;'
         return mark_safe(level + self.slug(language))
-
-    def slug(self, language=None, fallback=True):
-        """
-        Return the slug of the page depending on the given language.
-
-        :param language: wanted language, if not defined default is used.
-        :param fallback: if ``True``, the slug will also be searched in other \
-        languages.
-        """
-
-        slug = self.get_content(language, 'slug', language_fallback=fallback)
-        if slug == '':
-            return "Page {0}".format(self.id)
-
-        return slug
-
-    def title(self, language=None, fallback=True):
-        """
-        Return the title of the page depending on the given language.
-
-        :param language: wanted language, if not defined default is used.
-        :param fallback: if ``True``, the slug will also be searched in \
-        other languages.
-        """
-        if not language:
-            language = settings.PAGE_DEFAULT_LANGUAGE
-
-        return self.get_content(language, 'title', language_fallback=fallback)
 
     # Formating methods
 
@@ -489,7 +486,7 @@ class Page(MPTTModel):
         """Representation of the page, saved or not."""
         if self.id:
             # without ID a slug cannot be retrieved
-            return self.slug()
+            return self.slug
         return "Page without id"
 
 
@@ -515,7 +512,7 @@ class Content(models.Model):
         verbose_name_plural = _('contents')
 
     def __str__(self):
-        return u"{0} :: {1}".format(self.page.slug(), self.body[0:15])
+        return u"{0} :: {1}".format(self.page.slug, self.body[0:15])
 
 
 @python_2_unicode_compatible

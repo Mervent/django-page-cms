@@ -18,12 +18,7 @@
             {% endif %}
             <a href="{{ page.id }}/" class="title changelink
             {% if page.pagelink_broken or page.externallink_broken %}broken{% endif %}">
-            {% get_content page display_as as page_display %}
-            {% if page_display %}
-                {{ page_display }}
-            {% else %}
-                {% trans "undefined" %}
-            {% endif %}
+            {{ page.title }} <br/> <span class="help">{{ page.cached_url }}</span>
             {% if page.redirect_to or page.redirect_to_url %}
             <img class="redirected" src="{{ PAGES_MEDIA_URL }}images/icons/redirect.gif" alt="redirected" />{% endif %}</a>
 

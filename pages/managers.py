@@ -91,8 +91,7 @@ class PageManager(TreeManager):
     def from_path(self, complete_path, lang, exclude_drafts=True):
         """Return a :class:`Page <pages.models.Page>` according to
         the page's path."""
-        if complete_path.endswith("/"):
-            complete_path = complete_path[:-1]
+
         # just return the root page
         if complete_path == '':
             root_pages = self.root()
@@ -101,31 +100,15 @@ class PageManager(TreeManager):
             else:
                 return None
 
-        slug = get_slug(complete_path)
-        from pages.models import Content
-        page_ids = Content.objects.get_page_ids_by_slug(slug)
-        pages_list = self.on_site().filter(id__in=page_ids)
-        if exclude_drafts:
-            pages_list = pages_list.exclude(status=self.model.DRAFT)
-        if len(pages_list) == 1:
-            if(settings.PAGE_USE_STRICT_URL and
-                    pages_list[0].get_complete_slug(lang) != complete_path):
-                return None
-            return pages_list[0]
-        # if more than one page is matching the slug,
-        # we need to use the full URL
-        if len(pages_list) > 1:
-            for page in pages_list:
-                if page.get_complete_slug(lang) == complete_path:
-                    return page
-        return None
+        stripped = complete_path.strip('/')
+
+        try:
+            return self.on_site().get(cached_url='/%s/' % stripped if stripped else '/')
+        except self.model.DoesNotExist:
+            return None
 
     def from_slug(self, slug):
-        from pages.models import Content
-        content = Content.objects.get_content_slug_by_slug(slug)
-        if content is None:
-            raise ValueError("Slug '%s' didn't match any content." % slug)
-        return content.page
+        return self.on_site().filter(slug=slug)
 
 
 class ContentManager(models.Manager):
@@ -174,7 +157,7 @@ class ContentManager(models.Manager):
 
         # Delete old revisions
         if settings.PAGE_CONTENT_REVISION_DEPTH:
-            oldest_content = self.filter(page=page, language=language, 
+            oldest_content = self.filter(page=page, language=language,
                 type=ctype).order_by('-creation_date')[settings.PAGE_CONTENT_REVISION_DEPTH:]
             for c in oldest_content:
                 c.delete()
