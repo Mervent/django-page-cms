@@ -198,11 +198,11 @@ class RegressionTestCase(TestCase):
         temp = loader.get_template('pages/tests/test6.html')
         render = temp.render({'current_page':page})
 
+        print(render)
         self.assertTrue('t1_'+page.get_url_path() in render)
         self.assertTrue('t2_'+page.get_url_path() in render)
         self.assertTrue('t3_'+page.get_url_path() in render)
-        self.assertTrue('t4_'+page.slug() in render)
-        self.assertTrue('t5_'+page.slug() in render)
+        self.assertTrue('t4_'+page.slug in render)
 
     def test_placeholder_cache_bug(self):
         """There was an bad bug caused when the page cache was filled
