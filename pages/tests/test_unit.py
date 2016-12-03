@@ -375,8 +375,8 @@ class UnitTestCase(TestCase):
     @override_settings(PAGE_TAGGING=True)
     def test_get_pages_with_tag(self):
         """Test get_pages_with_tag template tag with tag name argument and return a list of pages"""
-        page = self.new_page({'slug': 'footer-page', 'somepage': 'get-footer-slug'})
-        page2 = self.new_page({'slug': 'footer-page2', 'somepage': 'get-footer-slug'})
+        page = self.new_page({'somepage': 'get-footer-slug'}, slug='footer-page')
+        page2 = self.new_page({'somepage': 'get-footer-slug'}, slug='footer-page2')
         tag = Tag.objects.create(name="footer")
         page.tags.add(tag)
         page2.tags.add(tag)
