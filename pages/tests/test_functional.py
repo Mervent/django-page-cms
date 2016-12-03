@@ -51,6 +51,7 @@ class FunctionnalTestCase(TestCase):
             page_data['slug']
         )
         assert(slug_content is not None)
+        page = slug_content.page
         pageCount = Page.objects.count()
         page.delete()
         self.assertEqual(Page.objects.count(), pageCount - 1)
