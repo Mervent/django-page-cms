@@ -287,7 +287,7 @@ class TemplateTestCase(TestCase):
 
     def test_get_page_from_slug_context_variable(self):
         """Test get_page_from_string_or_id with an slug context variable."""
-        page = self.new_page({'slug': 'test'})
+        page = self.new_page(slug='test')
 
         context = {'current_page': page}
         template = Template('{% load pages_tags %}'
