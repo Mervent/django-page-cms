@@ -116,14 +116,14 @@ class TemplateTestCase(TestCase):
     def test_parsed_template(self):
         """Test the parsed template syntax."""
         setattr(settings, "DEBUG", True)
-        page = self.new_page({'title': '<b>{{ "hello"|capfirst }}</b>'})
+        page = self.new_page(title='<b>{{ "hello"|capfirst }}</b>')
         page.save()
         context = {'current_page': page, 'lang': 'en-us'}
         pl_parsed = """{% load pages_tags %}{% placeholder title parsed %}"""
         template = self.get_template_from_string(pl_parsed)
         self.assertEqual(render(template, context), '<b>Hello</b>')
         setattr(settings, "DEBUG", False)
-        page = self.new_page({'title': '<b>{{ "hello"|wrong_filter }}</b>'})
+        page = self.new_page(title='<b>{{ "hello"|wrong_filter }}</b>')
         context = {'current_page': page, 'lang': 'en-us'}
         self.assertEqual(render(template, context), '')
 
