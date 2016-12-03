@@ -304,10 +304,12 @@ class TemplateTestCase(TestCase):
     def test_get_page_template_tag_with_page_arg_as_id(self):
         """Test get_page template tag with page argument given as a page id"""
         context = {}
-        pl1 = """{% load pages_tags %}{% get_page 1 as toto %}{{ toto }}"""
+        pl1 = """{% load pages_tags %}{% get_page 3 as toto %}{{ toto }}"""
         template = self.get_template_from_string(pl1)
-        self.new_page({'id': 1, 'slug': 'get-page-slug'})
-        self.assertEqual(render(template, context), 'get-page-slug')
+        self.new_page(slug='get-page-slug1')
+        self.new_page(slug='get-page-slug2')
+        self.new_page(slug='get-page-slug3')
+        self.assertEqual(render(template, context), 'get-page-slug3')
 
     def test_get_page_template_tag_with_variable_containing_page_id(self):
         """Test get_page template tag with page argument given as a page id"""
