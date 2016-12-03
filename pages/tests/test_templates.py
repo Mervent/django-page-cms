@@ -341,7 +341,7 @@ class TemplateTestCase(TestCase):
           "{% endblock %}")
 
         template = self.get_template_from_string(tpl)
-        page = self.new_page({'slug': 'get-page-slug'})
+        page = self.new_page(slug='get-page-slug')
         context = {'current_page': page}
         self.assertEqual(render(template, context), 'get-page-slug')
 
