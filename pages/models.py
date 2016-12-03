@@ -139,6 +139,7 @@ class Page(MPTTModel):
         self._complete_slug = None
         super(Page, self).__init__(*args, **kwargs)
         self._original_cached_url = self.cached_url
+        self.override_url = None
 
     def save(self, *args, **kwargs):
         """
@@ -169,8 +170,8 @@ class Page(MPTTModel):
         cached_page_urls = {}
 
         # determine own URL
-        if self.redirect_to_url:
-            self.cached_url = self.redirect_to_url
+        if self.override_url:
+            self.cached_url = self.override_url
         elif self.is_root_node():
             self.cached_url = '/%s' % self.slug
         else:
@@ -189,8 +190,8 @@ class Page(MPTTModel):
         pages = self.get_descendants().order_by('lft')
 
         for page in pages:
-            if page.redirect_to_url:
-                page.cached_url = page.redirect_to_url
+            if page.override_url:
+                page.cached_url = page.override_url
             else:
                 # cannot be root node by definition
                 page.cached_url = '%s/%s' % (
