@@ -327,8 +327,7 @@ class TemplateTestCase(TestCase):
         pl1 = ('{% load pages_tags %}{% placeholder somepage as slug %}'
             '{% get_page slug as toto %}{{ toto }}')
         template = self.get_template_from_string(pl1)
-        page = self.new_page({'slug': 'get-page-slug', 'somepage':
-            'get-page-slug'})
+        page = self.new_page({'somepage': 'get-page-slug'}, slug='get-page-slug')
         context = {'current_page': page}
         self.assertEqual(render(template, context), 'get-page-slug')
 
