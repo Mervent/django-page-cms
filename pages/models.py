@@ -160,7 +160,6 @@ class Page(MPTTModel):
             else:
                 self.publication_date = None
         self.last_modification_date = get_now()
-        super(Page, self).save(*args, **kwargs)
         # fix sites many-to-many link when the're hidden from the form
         if settings.PAGE_HIDE_SITES and self.sites.count() == 0:
             self.sites.add(Site.objects.get(pk=global_settings.SITE_ID))
