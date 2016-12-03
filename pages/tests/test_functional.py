@@ -37,8 +37,8 @@ class FunctionnalTestCase(TestCase):
         )
         assert(slug_content is not None)
         page = slug_content.page
-        self.assertEqual(page.title(), page_data['title'])
-        self.assertEqual(page.slug(), page_data['slug'])
+        self.assertEqual(page.title, page_data['title'])
+        self.assertEqual(page.slug, page_data['slug'])
         self.assertNotEqual(page.last_modification_date, None)
 
     def test_delete_page(self):
@@ -52,12 +52,7 @@ class FunctionnalTestCase(TestCase):
         )
         assert(slug_content is not None)
         pageCount = Page.objects.count()
-        page = slug_content.page
         page.delete()
-        slug_content = Content.objects.get_content_slug_by_slug(
-            page_data['slug']
-        )
-        assert(slug_content is None)
         self.assertEqual(Page.objects.count(), pageCount - 1)
 
     def test_slug_collision(self):
@@ -181,7 +176,7 @@ class FunctionnalTestCase(TestCase):
         response = c.post(reverse("admin:pages_page_change", args=[page.id]), page_data)
         self.assertRedirects(response, changelist_url)
         page = Page.objects.get(id=page.id)
-        self.assertEqual(page.title(), 'changed title')
+        self.assertEqual(page.title, 'changed title')
         body = Content.objects.get_content(page, 'en-us', 'body')
         self.assertEqual(body, 'changed body')
 
@@ -419,7 +414,7 @@ class FunctionnalTestCase(TestCase):
 
         url = reverse("admin:page-modify-content", args=[page.id, "title", "en-us"])
         response = c.post(url, {'content': 'test content'})
-        self.assertEqual(page.title(), 'test content')
+        self.assertEqual(page.title, 'test content')
 
         # TODO: realy test these methods
         url = reverse("admin:page-traduction", args=[page.id, "en-us"])
@@ -431,7 +426,7 @@ class FunctionnalTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
 
         url = reverse("admin:page-get-content", args=[
-            page.id, 
+            page.id,
             Content.objects.get_content_slug_by_slug('page-1').id
         ])
         response = c.get(url)
@@ -641,7 +636,7 @@ class FunctionnalTestCase(TestCase):
 
         # move page 2 in the first position
         move_url = reverse("admin:page-move-page", args=[child_2.id])
-        response = c.post(move_url, 
+        response = c.post(move_url,
             {'position': 'left', 'target': child_1.id})
 
         self.assertEqual(str(Page.objects.all()),
@@ -770,13 +765,13 @@ class FunctionnalTestCase(TestCase):
 
         page = Page.objects.from_path('after', None)
         page.freeze_date = limit
-        self.assertEqual(page.slug(), 'before')
+        self.assertEqual(page.slug, 'before')
         page.freeze_date = None
         page.save()
-        self.assertEqual(page.slug(), 'after')
+        self.assertEqual(page.slug, 'after')
         page.freeze_date = limit
         page.save()
-        self.assertEqual(page.slug(), 'before')
+        self.assertEqual(page.slug, 'before')
 
     def test_delegate_to(self):
         """Test the view delegate feature."""
@@ -902,7 +897,7 @@ class FunctionnalTestCase(TestCase):
         response = c.post(reverse("admin:pages_page_change", args=[page.id]), page_data)
         self.assertRedirects(response, changelist_url)
         page = Page.objects.get(id=page.id)
-        self.assertEqual(page.slug(), 'page2')
+        self.assertEqual(page.slug, 'page2')
 
         req = get_request_mock()
 

@@ -171,11 +171,11 @@ class Page(MPTTModel):
 
         # determine own URL
         if self.redirect_to_url:
-            self.cached_url = self.override_url
+            self.cached_url = self.redirect_to_url
         elif self.is_root_node():
-            self.cached_url = '/%s/' % self.slug
+            self.cached_url = '/%s' % self.slug
         else:
-            self.cached_url = '%s%s/' % (self.parent.cached_url, self.slug)
+            self.cached_url = '%s/%s' % (self.parent.cached_url, self.slug)
 
         cached_page_urls[self.id] = self.cached_url
         super(Page, self).save(*args, **kwargs)
@@ -191,10 +191,10 @@ class Page(MPTTModel):
 
         for page in pages:
             if page.redirect_to_url:
-                page.cached_url = page.override_url
+                page.cached_url = page.redirect_to_url
             else:
                 # cannot be root node by definition
-                page.cached_url = '%s%s/' % (
+                page.cached_url = '%s/%s' % (
                     cached_page_urls[page.parent_id],
                     page.slug)
 
@@ -437,21 +437,8 @@ class Page(MPTTModel):
 
         :param language: the wanted url language.
         """
-        if self.is_first_root():
-            # this is used to allow users to change URL of the root
-            # page. The language prefix is not usable here.
-            try:
-                return reverse('pages-root')
-            except Exception:
-                pass
-        url = self.get_complete_slug(language)
-        if not language:
-            language = settings.PAGE_DEFAULT_LANGUAGE
-        if settings.PAGE_USE_LANGUAGE_PREFIX:
-            return reverse('pages-details-by-path',
-                args=[language, url])
-        else:
-            return reverse('pages-details-by-path', args=[url])
+        # TODO:  Remove that ugly lstrip without breaking anything
+        return reverse('pages-details-by-path', args=[self.cached_url.lstrip('/')])
 
     def get_absolute_url(self, language=None):
         """Alias for `get_url_path`.

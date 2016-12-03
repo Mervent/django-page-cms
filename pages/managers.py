@@ -103,7 +103,7 @@ class PageManager(TreeManager):
         stripped = complete_path.strip('/')
 
         try:
-            return self.on_site().get(cached_url='/%s/' % stripped if stripped else '/')
+            return self.on_site().get(cached_url='/%s' % stripped if stripped else '/')
         except self.model.DoesNotExist:
             return None
 
@@ -228,11 +228,14 @@ class ContentManager(models.Manager):
         return ''
 
     def get_content_slug_by_slug(self, slug):
-        """Returns the latest :class:`Content <pages.models.Content>`
-        slug object that match the given slug for the current site domain.
-
-        :param slug: the wanted slug.
         """
+        Dummy method while migrating to new design
+        TODO: Remove me and fix tests
+        """
+        from pages.models import Page
+        page = Page.objects.on_site().filter(slug=slug).first()
+        return page and self.model(page=page)
+
         content = self.filter(type='slug', body=slug)
         if settings.PAGE_USE_SITE_ID:
             content = content.filter(page__sites__id=global_settings.SITE_ID)
