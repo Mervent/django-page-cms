@@ -344,8 +344,8 @@ class UnitTestCase(TestCase):
 
     def test_page_methods(self):
         """Test that some methods run properly."""
-        page1 = self.new_page(content={'slug': 'page1', 'title': 'hello'})
-        page2 = self.new_page(content={'slug': 'page2'})
+        page1 = self.new_page(slug='page1', title='hello')
+        page2 = self.new_page(slug='page2')
         page1.save()
         page2.save()
         page2.parent = page1
@@ -358,10 +358,10 @@ class UnitTestCase(TestCase):
              page2.slug_with_level(),
             "&nbsp;&nbsp;&nbsp;page2"
         )
-        p = Page(author=page1.author)
+        p = Page(author=page1.author, slug='page3')
         self.assertEqual(str(p), "Page without id")
         p.save()
-        self.assertEqual(str(p), "Page %d" % p.id)
+        self.assertEqual(str(p), "page3")
 
     def test_context_processor(self):
         """Test that the page's context processor is properly activated."""
