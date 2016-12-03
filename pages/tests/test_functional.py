@@ -885,30 +885,3 @@ class FunctionnalTestCase(TestCase):
         response = c.get(reverse("admin:pages_page_change", args=[page.id]))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'some file')
-
-    def test_redirect_old_slug(self):
-        """Test that a page redirect to new slug."""
-        c = self.get_admin_client()
-        c.login(username='batiste', password='b')
-        page_data = self.get_new_page_data()
-        page_data['slug'] = 'page1'
-        response = c.post(reverse('admin:pages_page_add'), page_data)
-        self.assertRedirects(response, changelist_url)
-        page = Page.objects.all()[0]
-        page_data['slug'] = 'page2'
-        response = c.post(reverse("admin:pages_page_change", args=[page.id]), page_data)
-        self.assertRedirects(response, changelist_url)
-        page = Page.objects.get(id=page.id)
-        self.assertEqual(page.slug, 'page2')
-
-        req = get_request_mock()
-
-        def _get_context_page(path):
-            return details(req, path, 'en-us')
-
-        self.assertEqual(_get_context_page('/pages/page1/').status_code, 200)
-
-        # Activate redirect
-        self.set_setting("PAGE_REDIRECT_OLD_SLUG", True)
-        self.assertEqual(_get_context_page('/pages/page1/').status_code, 301)
-        self.assertEqual(_get_context_page('/pages/page1/')._headers['location'][1], '/pages/page2')
