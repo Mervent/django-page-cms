@@ -219,3 +219,6 @@ PAGE_TESTS_SAVE_SCREENSHOTS = getattr(settings, 'PAGE_TESTS_SAVE_SCREENSHOTS',
 
 # If you want to redirect to new page url
 PAGE_REDIRECT_OLD_SLUG = getattr(settings, 'PAGE_REDIRECT_OLD_SLUG', False)
+
+# Display pages in admin as slug, title or something else
+PAGE_ADMIN_DISPLAY_AS = getattr(settings, 'PAGE_ADMIN_DISPLAY_AS', 'slug')
