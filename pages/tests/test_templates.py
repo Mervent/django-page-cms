@@ -53,7 +53,7 @@ class TemplateTestCase(TestCase):
 
         pl1 = """{% load pages_tags %}{% placeholder title as hello %}{{ hello }}"""
         template = self.get_template_from_string(pl1)
-        self.assertEqual(render(template, context), page.title())
+        self.assertEqual(render(template, context), page.title)
 
         # to be sure to raise an errors in parse template content
         setattr(settings, "DEBUG", True)
@@ -272,7 +272,7 @@ class TemplateTestCase(TestCase):
 
     def test_get_page_from_id_context_variable(self):
         """Test get_page_from_string_or_id with an id context variable."""
-        page = self.new_page({'slug': 'test'})
+        page = self.new_page(slug='test')
         self.assertEqual(get_page_from_string_or_id(str(page.id)), page)
 
         content = Content(page=page, language='en-us', type='test_id',
