@@ -741,8 +741,9 @@ class FunctionnalTestCase(TestCase):
 
         # now check whether we can retrieve the page.
         response = client.get(page1.get_url_path())
-        self.assertTrue(response.status_code == 301)
-        self.assertTrue(response['Location'] == url)
+        # TODO: Check why it's not working without fetch_redirect_response=False
+        self.assertRedirects(response, expected_url=url, status_code=301, fetch_redirect_response=False)
+
 
     def test_page_freeze_date(self):
         """Test page freezing feature."""
