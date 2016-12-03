@@ -39,7 +39,7 @@ class TemplateTestCase(TestCase):
         pl1 = """{% load pages_tags %}{% get_page "get-page-slug" as toto %}{{ toto }}"""
         template = self.get_template_from_string(pl1)
         self.assertEqual(render(template, context), 'None')
-        self.new_page({'slug': 'get-page-slug'})
+        self.new_page(slug='get-page-slug')
         self.assertEqual(render(template, context), 'get-page-slug')
 
     def test_placeholder_all_syntaxes(self):
