@@ -29,11 +29,9 @@ class Error404Expected(Exception):
     pass
 
 
-def new_page(content={'title': 'test-page', 'slug': 'test-page-slug'}, 
-        parent=None, language='en-us', template='pages/examples/index.html'):
+def new_page(content={}, parent=None, language='en-us', template='pages/examples/index.html', title='test-page', slug='test-page-slug'):
     author = get_user_model().objects.all()[0]
-    page = Page.objects.create(author=author, status=Page.PUBLISHED,
-        template=template, parent=parent)
+    page = Page.objects.create(author=author, status=Page.PUBLISHED, template=template, parent=parent, title=title, slug=slug)
     if pages_settings.PAGE_USE_SITE_ID:
         page.sites.add(Site.objects.get(id=1))
     # necessary to clear old URL cache
