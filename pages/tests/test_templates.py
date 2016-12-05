@@ -152,18 +152,18 @@ class TemplateTestCase(TestCase):
         """
         Test the {% get_content %} template tag
         """
-        page_data = {'title': 'test', 'slug': 'test'}
-        page = self.new_page(page_data)
+        page_data = {'content': 'test'}
+        page = self.new_page(page_data, title='test', slug='test')
 
         context = {'page': page}
         template = Template('{% load pages_tags %}'
-                            '{% get_content page "title" "en-us" as content %}'
+                            '{% get_content page "content" "en-us" as content %}'
                             '{{ content }}')
-        self.assertEqual(render(template, context), page_data['title'])
+        self.assertEqual(render(template, context), page_data['content'])
         template = Template('{% load pages_tags %}'
-                            '{% get_content page "title" as content %}'
+                            '{% get_content page "content" as content %}'
                             '{{ content }}')
-        self.assertEqual(render(template, context), page_data['title'])
+        self.assertEqual(render(template, context), page_data['content'])
 
     def test_get_content_tag_bug(self):
         """
