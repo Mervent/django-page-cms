@@ -170,7 +170,6 @@ class TemplateTestCase(TestCase):
         Make sure that {% get_content %} use the "lang" context variable if
         no language string is provided.
         """
-        #page_data = {'title': 'test', 'slug': 'english'}
         page = self.new_page(title='test', slug='english')
         Content(page=page, language='en-us', type='content', body='english').save()
         Content(page=page, language='fr-ch', type='content', body='french').save()
