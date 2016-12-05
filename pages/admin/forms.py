@@ -121,10 +121,14 @@ def make_form(model_, placeholders):
             target = self.data.get('target', None)
             position = self.data.get('position', None)
 
-            if target:
+            parent = None
+            if self.instance.id:
+                parent = Page.objects.on_site().get(id=self.instance.id).parent
+            elif target:
                 parent = Page.objects.on_site().get(id=target)
+
+            if parent:
                 new_url = '%s/%s' % (parent.cached_url, slug)
-                self.instance.parent = parent
             else:
                 new_url = '/%s' % slug
 

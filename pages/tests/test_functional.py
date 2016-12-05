@@ -597,32 +597,38 @@ class FunctionnalTestCase(TestCase):
         self.assertEqual(str(Page.objects.all()),
             "[<Page: root>, <Page: child-2>, <Page: child-1>]")
 
-        # try to create a sibling with the same slug, via left, right
-        from pages import settings as pages_settings
-        setattr(pages_settings, "PAGE_UNIQUE_SLUG_REQUIRED", False)
+        # try to create a sibling with the same slug, via first-child
+        # should not create and return code 200, instead of 302 redirect
+        page_data['target'] = child_2.id
+        page_data['position'] = 'first-child'
+        response = c.post(add_url, page_data)
+        self.assertEqual(response.status_code, 302)
+
+        page_data['target'] = root_page.id
+        page_data['position'] = 'first-child'
+        response = c.post(add_url, page_data)
+        self.assertEqual(response.status_code, 200)
+
+        # try to create a sibling via left, right
+        # should not create and return code 200, instead of 302 redirect
         page_data['target'] = child_2.id
         page_data['position'] = 'left'
         response = c.post(add_url, page_data)
         self.assertEqual(response.status_code, 200)
 
-        # try to create a sibling with the same slug, via first-child
-        page_data['target'] = root_page.id
-        page_data['position'] = 'first-child'
-        response = c.post(add_url, page_data)
-        self.assertEqual(response.status_code, 200)
         # try to create a second page 2 in root
         del page_data['target']
         del page_data['position']
 
-        setattr(pages_settings, "PAGE_UNIQUE_SLUG_REQUIRED", True)
-        # cannot create because slug exists
-        response = c.post(add_url, page_data)
-        self.assertEqual(response.status_code, 200)
-        # Now it should work beause the page is not a sibling
-        setattr(pages_settings, "PAGE_UNIQUE_SLUG_REQUIRED", False)
+        # create page without root parent
         response = c.post(add_url, page_data)
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(Page.objects.count(), 4)
+
+        # cannot create same page twice
+        response = c.post(add_url, page_data)
+        self.assertEqual(response.status_code, 200)
+
+        self.assertEqual(Page.objects.count(), 5)
         # Should not work because we already have sibling at the same level
         response = c.post(add_url, page_data)
         self.assertEqual(response.status_code, 200)
@@ -631,9 +637,12 @@ class FunctionnalTestCase(TestCase):
         page_data['slug'] = 'child-1'
         response = c.post(reverse("admin:pages_page_change", args=[child_2.id]), page_data)
         self.assertEqual(response.status_code, 200)
-        setattr(pages_settings, "PAGE_UNIQUE_SLUG_REQUIRED", True)
+
+        # try to change the page 2 slug into something new
+        page_data['slug'] = 'child-3'
         response = c.post(reverse("admin:pages_page_change", args=[child_2.id]), page_data)
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 302)
+
 
     def test_tree(self):
         """

@@ -139,6 +139,7 @@ class PageAdmin(admin.ModelAdmin):
             else:
                 target.invalidate()
                 page.move_to(target, position)
+                page.save()
 
         for name in self.mandatory_placeholders:
             data = form.cleaned_data[name]
