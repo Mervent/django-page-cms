@@ -370,9 +370,9 @@ class FunctionnalTestCase(TestCase):
         page = Content.objects.get_content_slug_by_slug('page-1').page
         self.assertEqual(page.status, Page.DRAFT)
 
-        url = reverse("admin:page-modify-content", args=[page.id, "title", "en-us"])
+        url = reverse("admin:page-modify-content", args=[page.id, "content", "en-us"])
         response = c.post(url, {'content': 'test content'})
-        self.assertEqual(page.title, 'test content')
+        self.assertEqual(page.get_content(ctype='content', language='en-us'), 'test content')
 
         # TODO: realy test these methods
         url = reverse("admin:page-traduction", args=[page.id, "en-us"])
@@ -384,8 +384,7 @@ class FunctionnalTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
 
         url = reverse("admin:page-get-content", args=[
-            page.id,
-            Content.objects.get_content_slug_by_slug('page-1').id
+            page.id, Content.objects.get_content_object(page=page, language='en-us', ctype='content').id
         ])
         response = c.get(url)
         self.assertEqual(response.status_code, 200)
