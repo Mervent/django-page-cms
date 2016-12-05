@@ -65,6 +65,8 @@ class Details(object):
             redirection = self.resolve_alias(request, path, lang)
             if redirection:
                 return redirection
+
+            raise Http404
         else:
             context['current_page'] = current_page
 
@@ -124,7 +126,6 @@ class Details(object):
         if alias:
             url = alias.page.get_url_path(lang)
             return HttpResponsePermanentRedirect(url)
-        raise Http404
 
     def resolve_redirection(self, request, context):
         """Check for redirections."""
