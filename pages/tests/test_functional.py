@@ -58,24 +58,22 @@ class FunctionnalTestCase(TestCase):
 
     def test_slug_collision(self):
         """Test a slug collision."""
-        self.set_setting("PAGE_UNIQUE_SLUG_REQUIRED", True)
 
         c = self.get_admin_client()
 
         page_data = self.get_new_page_data()
         response = c.post(add_url, page_data)
-        self.assertRedirects(response, changelist_url)
-        self.set_setting("PAGE_UNIQUE_SLUG_REQUIRED", False)
+        self.assertRedirects(response, changelist_url)  # Page created
         response = c.post(add_url, page_data)
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 200)  # Not created with same slug
+        self.assertEqual(Page.objects.count(), 1)
 
-        page1 = Content.objects.get_content_slug_by_slug(page_data['slug']).page
+        page1 = Page.objects.from_slug(page_data['slug']).first()
         page_data['position'] = 'first-child'
         page_data['target'] = page1.id
         response = c.post(add_url, page_data)
         self.assertRedirects(response, changelist_url)
-        page2 = Content.objects.get_content_slug_by_slug(page_data['slug']).page
-        self.assertNotEqual(page1.id, page2.id)
+        self.assertEqual(Page.objects.count(), 2)
 
 
     def test_details_view(self):
