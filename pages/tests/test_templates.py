@@ -248,25 +248,25 @@ class TemplateTestCase(TestCase):
         """
         Test a {% show_absolute_url %} template tag  bug.
         """
-        page_data = {'title': 'english', 'slug': 'english'}
-        page = self.new_page(page_data)
-        Content(page=page, language='fr-ch', type='title', body='french').save()
-        Content(page=page, language='fr-ch', type='slug', body='french').save()
+        page_data = {'title': 'test', 'slug': 'test'}
+        page = self.new_page(**page_data)
+        Content(page=page, language='en-us', type='content', body='english').save()
+        Content(page=page, language='fr-ch', type='content', body='french').save()
 
         self.assertEqual(page.get_url_path(language='fr-ch'),
-            self.get_page_url('french'))
+            self.get_page_url('test'))
         self.assertEqual(page.get_url_path(language='en-us'),
-            self.get_page_url('english'))
+            self.get_page_url('test'))
 
         context = {'page': page}
         template = Template('{% load pages_tags %}'
                             '{% show_absolute_url page "en-us" %}')
         self.assertEqual(render(template, context),
-            self.get_page_url('english'))
+            self.get_page_url('test'))
         template = Template('{% load pages_tags %}'
                             '{% show_absolute_url page "fr-ch" %}')
         self.assertEqual(render(template, context),
-            self.get_page_url('french'))
+            self.get_page_url('test'))
 
     def test_get_page_from_id_context_variable(self):
         """Test get_page_from_string_or_id with an id context variable."""
