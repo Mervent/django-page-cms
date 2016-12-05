@@ -812,20 +812,21 @@ class FunctionnalTestCase(TestCase):
         Test the sitemap class
         """
         c = self.get_admin_client()
-        page1 = self.new_page(content={'slug': 'english-slug'})
+        page1 = self.new_page(slug='english-slug')
         page1.save()
-        Content(page=page1, language='fr-ch', type='slug',
-            body='french-slug').save()
+        page2 = self.new_page(slug='french-slug')
+        page2.save()
 
         response = c.get('/sitemap.xml')
 
         self.assertContains(response, 'english-slug')
-        self.assertNotContains(response, 'french-slug')
-
-        response = c.get('/sitemap2.xml')
-
-        self.assertContains(response, 'english-slug')
         self.assertContains(response, 'french-slug')
+
+        # TODO: Do not multilanguage setup for now
+        #response = c.get('/sitemap2.xml')
+
+        #self.assertContains(response, 'english-slug')
+        #self.assertContains(response, 'french-slug')
 
     def test_fileinput_in_admin(self):
         """Test that a page can edited via the admin."""
