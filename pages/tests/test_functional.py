@@ -800,8 +800,8 @@ class FunctionnalTestCase(TestCase):
         Test that a page is also available with and without a trailing slash.
         """
         c = self.get_admin_client()
-        page1 = self.new_page(content={'slug': 'root'})
-        page2 = self.new_page(content={'slug': 'other'})
+        page1 = self.new_page(slug='root')
+        page2 = self.new_page(slug='other')
         response = c.get(self.get_page_url('other'))
         self.assertEqual(response.status_code, 200)
         response = c.get(self.get_page_url('other/'))
