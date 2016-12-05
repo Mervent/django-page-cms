@@ -822,7 +822,7 @@ class FunctionnalTestCase(TestCase):
         self.assertContains(response, 'english-slug')
         self.assertContains(response, 'french-slug')
 
-        # TODO: Do not multilanguage setup for now
+        # TODO: Do not test multilanguage setup for now
         #response = c.get('/sitemap2.xml')
 
         #self.assertContains(response, 'english-slug')
