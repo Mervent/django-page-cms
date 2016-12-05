@@ -77,65 +77,6 @@ class FunctionnalTestCase(TestCase):
         page2 = Content.objects.get_content_slug_by_slug(page_data['slug']).page
         self.assertNotEqual(page1.id, page2.id)
 
-    def test_automatic_slug_renaming(self):
-        """Test a slug renaming."""
-        self.set_setting("PAGE_AUTOMATIC_SLUG_RENAMING", True)
-
-        c = self.get_admin_client()
-
-        page_data = self.get_new_page_data()
-        page_data['slug'] = "slug"
-        response = c.post(add_url, page_data)
-        self.assertRedirects(response, changelist_url)
-        response = c.post(add_url, page_data)
-        self.assertRedirects(response, changelist_url)
-        response = c.post(add_url, page_data)
-        self.assertRedirects(response, changelist_url)
-
-        slug = page_data['slug']
-
-        page1 = Content.objects.get_content_slug_by_slug(slug).page
-        page2 = Content.objects.get_content_slug_by_slug(slug+'-2').page
-        page3 = Content.objects.get_content_slug_by_slug(slug+'-3').page
-
-        self.assertNotEqual(page1.id, page2.id)
-        self.assertNotEqual(page2.id, page3.id)
-
-        self.assertEqual(Content.objects.filter(type="slug").count(), 3)
-
-        # post again on page 3 doesn't change the slug
-        page_3_slug = page3.slug()
-        page_data['slug'] = page_3_slug
-        response = c.post(reverse("admin:pages_page_change", args=[page3.id]), page_data)
-        self.assertRedirects(response, changelist_url)
-        self.assertEqual(Content.objects.filter(type="slug").count(), 3)
-        content = Content.objects.get_content_slug_by_slug(page_3_slug)
-        self.assertEqual(page3.id, content.page.id)
-
-        # change an old slug of another page and see that it doesn't
-        # influence the current slug of this page
-        old_slug = Content.objects.filter(page=page1).latest("creation_date")
-        new_slug = Content(page=page1, body=page_3_slug, type="slug")
-        new_slug.creation_date = old_slug.creation_date - datetime.timedelta(seconds=5)
-        new_slug.save()
-
-        self.assertEqual(Content.objects.filter(type="slug").count(), 4)
-
-        # check than the old slug doesn't trigger a new slug for page 3
-        response = c.post(reverse("admin:pages_page_change", args=[page3.id]), page_data)
-        content = Content.objects.get_content_slug_by_slug(page_3_slug)
-        self.assertEqual(page3.id, content.page.id)
-        self.assertEqual(Content.objects.filter(type="slug").count(), 4)
-
-        new_slug.creation_date = old_slug.creation_date + datetime.timedelta(seconds=5)
-        new_slug.save()
-
-        # check than the new slug does trigger a new slug for page 3
-        response = c.post(reverse("admin:pages_page_change", args=[page3.id]), page_data)
-        content = Content.objects.get_content_slug_by_slug(page_3_slug)
-        self.assertEqual(page1.id, content.page.id)
-        content = Content.objects.get_content_slug_by_slug(page_3_slug+'-2')
-        self.assertEqual(page3.id, content.page.id)
 
     def test_details_view(self):
         """Test the details view basics."""
