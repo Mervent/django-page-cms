@@ -300,6 +300,22 @@ class FunctionnalTestCase(TestCase):
 
         self.assertContains(response, 'name="right-column"', 1)
 
+    def test_cannot_create_pages_with_same_url(self):
+        c = self.get_admin_client()
+        c.login(username='batiste', password='b')
+        page_data = self.get_new_page_data()
+
+        page_data['slug'] = 'same-slug'
+        response = c.post(add_url, page_data)
+        # the redirect tell that the page has been create correctly
+        self.assertRedirects(response, changelist_url)
+        response = c.get(self.get_page_url('same-slug/'))
+        self.assertEqual(response.status_code, 200)
+
+        response = c.post(add_url, page_data)
+        # we cannot create 2 pages with the same cached_url
+        self.assertEqual(response.status_code, 200)
+
     def test_directory_slug(self):
         """
         Test diretory slugs
