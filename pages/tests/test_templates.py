@@ -170,31 +170,30 @@ class TemplateTestCase(TestCase):
         Make sure that {% get_content %} use the "lang" context variable if
         no language string is provided.
         """
-        page_data = {'title': 'test', 'slug': 'english'}
-        page = self.new_page(page_data)
-        Content(page=page, language='fr-ch', type='title', body='french').save()
-        Content(page=page, language='fr-ch', type='slug', body='french').save()
-        self.assertEqual(page.slug(language='fr-ch'), 'french')
-        self.assertEqual(page.slug(language='en-us'), 'english')
+        #page_data = {'title': 'test', 'slug': 'english'}
+        page = self.new_page(title='test', slug='english')
+        Content(page=page, language='en-us', type='content', body='english').save()
+        Content(page=page, language='fr-ch', type='content', body='french').save()
+        self.assertEqual(page.slug, 'english')
 
         # default
         context = {'page': page}
         template = Template('{% load pages_tags %}'
-                            '{% get_content page "slug" as content %}'
+                            '{% get_content page "content" as content %}'
                             '{{ content }}')
         self.assertEqual(render(template, context), 'english')
 
         # french specified
         context = {'page': page, 'lang': 'fr'}
         template = Template('{% load pages_tags %}'
-                            '{% get_content page "slug" as content %}'
+                            '{% get_content page "content" as content %}'
                             '{{ content }}')
         self.assertEqual(render(template, context), 'french')
 
         # english specified
         context = {'page': page, 'lang': 'en-us'}
         template = Template('{% load pages_tags %}'
-                            '{% get_content page "slug" as content %}'
+                            '{% get_content page "content" as content %}'
                             '{{ content }}')
         self.assertEqual(render(template, context), 'english')
 
