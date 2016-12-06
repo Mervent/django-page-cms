@@ -329,7 +329,6 @@ class PageAdmin(admin.ModelAdmin):
             pages = pages.filter(sites=global_settings.SITE_ID)
 
         context = {
-            'display_as': settings.PAGE_ADMIN_DISPLAY_AS,
             'can_publish': request.user.has_perm('pages.can_publish'),
             'can_import': settings.PAGE_IMPORT_ENABLED,
             'lang': language,  # lang is the key used by show_content
