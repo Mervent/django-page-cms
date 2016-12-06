@@ -259,6 +259,7 @@ class Page(MPTTModel):
         self.invalidate()
         target.invalidate()
         super(Page, self).move_to(target, position=position)
+        self.save()
 
     def invalidate(self):
         """Invalidate cached data for this page."""

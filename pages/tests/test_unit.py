@@ -313,6 +313,13 @@ class UnitTestCase(TestCase):
         self.assertEqual(remove_slug('/hello/world/'), 'hello')
         self.assertEqual(remove_slug('hello'), None)
 
+    def test_move_to_should_refresh_cached_url(self):
+        page1 = self.new_page(slug='page1')
+        page2 = self.new_page(slug='page2')
+        expected_url = 'page1/page2'
+        page2.move_to(target=page1)
+        self.assertEqual(page2.get_complete_slug(), expected_url)
+
     def test_path_too_long(self):
         """Test that the CMS try to resolve the whole page path to find
         a suitable sub path with delegation."""
