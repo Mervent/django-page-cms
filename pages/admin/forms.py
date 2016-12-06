@@ -115,8 +115,7 @@ def make_form(model_, placeholders):
             #widget=widgets.AdminTimeWidget()
         )
 
-        def clean(self):
-            cleaned_data = super(PageForm, self).clean()
+        def clean_slug(self):
             slug = slugify(self.cleaned_data['slug'])
             target = self.data.get('target', None)
             position = self.data.get('position', None)
@@ -134,6 +133,6 @@ def make_form(model_, placeholders):
 
             if Page.objects.on_site().filter(cached_url=new_url).exclude(id=self.instance.id).exists():
                 raise forms.ValidationError('This URL is already taken by another active page.')
-            return cleaned_data
+            return slug
 
     return PageForm

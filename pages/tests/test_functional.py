@@ -65,7 +65,7 @@ class FunctionnalTestCase(TestCase):
         response = c.post(add_url, page_data)
         self.assertRedirects(response, changelist_url)  # Page created
         response = c.post(add_url, page_data)
-        self.assertEqual(response.status_code, 200)  # Not created with same slug
+        self.assertContains(response, 'This URL is already taken')
         self.assertEqual(Page.objects.count(), 1)
 
         page1 = Page.objects.from_slug(page_data['slug']).first()
