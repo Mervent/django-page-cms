@@ -455,6 +455,8 @@ class Page(MPTTModel):
 
         :param language: the wanted slug language."""
         # TODO:  Remove that ugly lstrip without breaking anything
+        if hideroot and settings.PAGE_HIDE_ROOT_SLUG and self.is_first_root():
+            return ''
         return self.cached_url.lstrip('/')
 
     def slug_with_level(self, language=None):
