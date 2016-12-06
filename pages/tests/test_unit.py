@@ -360,10 +360,10 @@ class UnitTestCase(TestCase):
         """Test that the page's context processor is properly activated."""
         from pages.views import details
         req = get_request_mock()
-        page1 = self.new_page(content={'slug': 'page1', 'title': 'hello', 'status': 'published'})
+        page1 = self.new_page(slug='page1', title='hello')
         page1.save()
         self.set_setting("PAGES_MEDIA_URL", "test_request_context")
-        self.assertContains(details(req, path='/'), "test_request_context")
+        self.assertContains(details(req, path='/page1'), "test_request_context")
 
     @override_settings(PAGE_TAGGING=True)
     def test_get_pages_with_tag(self):
