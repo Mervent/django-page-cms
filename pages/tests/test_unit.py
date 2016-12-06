@@ -226,7 +226,7 @@ class UnitTestCase(TestCase):
         """
         Check that the root works properly in every case.
         """
-        page1 = self.new_page(content={'slug': 'page1'})
+        page1 = self.new_page(slug='page1')
 
         self.set_setting("PAGE_USE_LANGUAGE_PREFIX", False)
         self.set_setting("PAGE_HIDE_ROOT_SLUG", True)
@@ -316,8 +316,8 @@ class UnitTestCase(TestCase):
     def test_path_too_long(self):
         """Test that the CMS try to resolve the whole page path to find
         a suitable sub path with delegation."""
-        page1 = self.new_page(content={'slug': 'page1'})
-        page2 = self.new_page(content={'slug': 'page2'})
+        page1 = self.new_page(slug='page1')
+        page2 = self.new_page(slug='page2')
         from pages import urlconf_registry as reg
         reg.register_urlconf('test2', 'pages.testproj.documents.urls',
             label='test')
