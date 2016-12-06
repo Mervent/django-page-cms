@@ -716,6 +716,7 @@ class FunctionnalTestCase(TestCase):
         page_data = self.get_new_page_data()
         page_data['title'] = 'before'
         page_data['slug'] = 'before'
+        page_data['body'] = 'before'
         response = c.post(add_url, page_data)
         self.assertRedirects(response, changelist_url)
         page = Page.objects.from_path('before', None)
@@ -726,19 +727,20 @@ class FunctionnalTestCase(TestCase):
 
         page_data['title'] = 'after'
         page_data['slug'] = 'after'
+        page_data['body'] = 'after'
         # this post erase the limit
         response = c.post(reverse("admin:pages_page_change", args=[page.id]), page_data)
         self.assertRedirects(response, changelist_url)
 
         page = Page.objects.from_path('after', None)
         page.freeze_date = limit
-        self.assertEqual(page.slug, 'before')
+        self.assertEqual(page.get_content(ctype='body', language='en-us'), 'before')
         page.freeze_date = None
         page.save()
-        self.assertEqual(page.slug, 'after')
+        self.assertEqual(page.get_content(ctype='body', language='en-us'), 'after')
         page.freeze_date = limit
         page.save()
-        self.assertEqual(page.slug, 'before')
+        self.assertEqual(page.get_content(ctype='body', language='en-us'), 'before')
 
     def test_delegate_to(self):
         """Test the view delegate feature."""
