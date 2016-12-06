@@ -812,6 +812,8 @@ class FunctionnalTestCase(TestCase):
         """
         Test that a page is also available with and without a trailing slash.
         """
+        # TODO: Fix this, it's not recommended behavior by google.
+        # TODO: We should redirect from one page to another
         c = self.get_admin_client()
         page1 = self.new_page(slug='root')
         page2 = self.new_page(slug='other')
