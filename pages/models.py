@@ -388,7 +388,7 @@ class Page(MPTTModel):
         :param fallback: if ``True``, the content will also be searched in \
         other languages.
         """
-        # TO-DO: Remove that dirty hacking
+        # TODO: Remove that dirty hacking with rerouting content
         if ctype == 'slug':
             return self.slug
         elif ctype == 'title':
@@ -403,6 +403,7 @@ class Page(MPTTModel):
         This is used by the haystack framework to build the search index."""
         placeholders = get_placeholders(self.get_template())
         exposed_content = []
+        exposed_content.append(self.title)
         for lang in self.get_languages():
             for p in placeholders:
                 content = self.get_content(lang, p.ctype, False)
@@ -437,12 +438,14 @@ class Page(MPTTModel):
 
         :param language: the wanted url language.
         """
-        # TODO:  Remove that ugly lstrip without breaking anything
-        return reverse('pages-details-by-path', args=[self.cached_url.lstrip('/')])
+        if not language:
+            language = settings.PAGE_DEFAULT_LANGUAGE
+        if settings.PAGE_USE_LANGUAGE_PREFIX:
+            return reverse('pages-details-by-path', args=[language, self.get_complete_slug()])
+        return reverse('pages-details-by-path', args=[self.get_complete_slug()])
 
     def get_absolute_url(self, language=None):
         """Alias for `get_url_path`.
-
         :param language: the wanted url language.
         """
         return self.get_url_path(language=language)
@@ -452,7 +455,8 @@ class Page(MPTTModel):
         all parent's slugs.
 
         :param language: the wanted slug language."""
-        return self.cached_url
+        # TODO:  Remove that ugly lstrip without breaking anything
+        return self.cached_url.lstrip('/')
 
     def slug_with_level(self, language=None):
         """Display the slug of the page prepended with insecable
@@ -461,7 +465,7 @@ class Page(MPTTModel):
         if self.level:
             for n in range(0, self.level):
                 level += '&nbsp;&nbsp;&nbsp;'
-        return mark_safe(level + self.slug(language))
+        return mark_safe(level + self.slug)
 
     # Formating methods
 

@@ -170,6 +170,22 @@ class UnitTestCase(TestCase):
         self.assertEqual(
             get_language_from_request(request), 'fr-ch')
 
+    def test_can_view_page_by_own_url_path(self):
+        from pages.views import details
+        req = get_request_mock()
+
+        page1 = self.new_page(slug='page1')
+        self.assertEqual(details(req, page1.get_url_path(), only_context=True)['current_page'], page1)
+
+    def test_can_view_page_by_root(self):
+        from pages.views import details
+        req = get_request_mock()
+
+        page1 = self.new_page(slug='page1')
+        page2 = self.new_page(slug='page2')
+        self.assertEqual(details(req, '', only_context=True)['current_page'], page1)
+        self.assertEqual(details(req, page2.get_url_path(), only_context=True)['current_page'], page2)
+
     def test_default_view_with_language_prefix(self):
         """
         Test that everything is working with the language prefix option
@@ -181,8 +197,8 @@ class UnitTestCase(TestCase):
         req = get_request_mock()
         self.assertRaises(Http404, details, req, '/pages/')
 
-        page1 = self.new_page(content={'slug': 'page1'})
-        page2 = self.new_page(content={'slug': 'page2'})
+        page1 = self.new_page(slug='page1')
+        page2 = self.new_page(slug='page2')
 
         self.assertEqual(page1.get_url_path(),
             reverse('pages-details-by-path', args=[],

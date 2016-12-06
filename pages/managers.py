@@ -91,16 +91,23 @@ class PageManager(TreeManager):
     def from_path(self, complete_path, lang, exclude_drafts=True):
         """Return a :class:`Page <pages.models.Page>` according to
         the page's path."""
+        from django.core.urlresolvers import reverse
+        if settings.PAGE_USE_LANGUAGE_PREFIX:
+            pages_root = reverse('pages-details-by-path', args=[settings.PAGE_DEFAULT_LANGUAGE, ''])
+        else:
+            pages_root = reverse('pages-details-by-path', args=[''])
+        if complete_path.startswith(pages_root):
+            complete_path = complete_path[len(pages_root) - 1:]
+
+        stripped = complete_path.strip('/')
 
         # just return the root page
-        if complete_path == '':
+        if stripped == '':
             root_pages = self.root()
             if root_pages:
                 return root_pages[0]
             else:
                 return None
-
-        stripped = complete_path.strip('/')
 
         try:
             return self.on_site().get(cached_url='/%s' % stripped if stripped else '/')
