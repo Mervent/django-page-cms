@@ -22,7 +22,7 @@ def export_po_files(path='poexport', stdout=None):
         stdout = sys.stdout
     if not path.endswith('/'):
         path += '/'
-    
+
     source_language = settings.PAGE_DEFAULT_LANGUAGE
     source_list = []
     for page in Page.objects.published():

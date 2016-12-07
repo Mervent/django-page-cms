@@ -148,7 +148,7 @@ class Page(MPTTModel):
             or using provided arguments. Returns complete slug as str
         """
         if not parent:
-            complete_slug = '/%s' % slug
+            complete_slug = '%s' % slug
         else:
             complete_slug = '%s/%s' % (parent.complete_slug, slug)
         return complete_slug
@@ -459,10 +459,9 @@ class Page(MPTTModel):
         all parent's slugs.
 
         :param language: the wanted slug language."""
-        # TODO:  Remove that ugly lstrip without breaking anything
         if hideroot and settings.PAGE_HIDE_ROOT_SLUG and self.is_first_root():
             return ''
-        return self.complete_slug.lstrip('/')
+        return self.complete_slug
 
     def slug_with_level(self, language=None):
         """Display the slug of the page prepended with insecable
