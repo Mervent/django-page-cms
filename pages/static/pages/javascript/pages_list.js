@@ -319,11 +319,12 @@ $(function($) {
 
         $(document).on("mouseup", function(e) {
             // release
-            var target_line_id = choosen_line.el.id.split('page-row-')[1];
-
-            if(drag_initiated && target_line_id != line_id) {
-              drag_initiated = false;
-                move_page(line_id, insert_at, target_line_id);
+            if (drag_initiated) {
+                var target_line_id = choosen_line.el.id.split('page-row-')[1];
+                if(target_line_id != line_id) {
+                    drag_initiated = false;
+                    move_page(line_id, insert_at, target_line_id);
+                }
             }
 
             $(line).css("opacity", "1");
