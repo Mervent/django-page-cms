@@ -126,10 +126,7 @@ def make_form(model_, placeholders):
             elif target:
                 parent = Page.objects.on_site().get(id=target)
 
-            if parent:
-                new_url = '%s/%s' % (parent.complete_slug, slug)
-            else:
-                new_url = '/%s' % slug
+            new_url = Page.build_complete_slug(parent, slug)
 
             if Page.objects.on_site().filter(complete_slug=new_url).exclude(id=self.instance.id).exists():
                 raise forms.ValidationError('This URL is already taken by another active page.')
