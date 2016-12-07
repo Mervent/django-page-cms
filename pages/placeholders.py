@@ -166,26 +166,9 @@ class PlaceholderNode(template.Node):
             language = settings.PAGE_DEFAULT_LANGUAGE
 
         # the page is being changed
-        if change:
-            # we need create a new content if revision is enabled
-            if(settings.PAGE_CONTENT_REVISION and self.name
-                    not in settings.PAGE_CONTENT_REVISION_EXCLUDE_LIST):
-                Content.objects.create_content_if_changed(
-                    page,
-                    language,
-                    self.ctype,
-                    data
-                )
-            else:
-                Content.objects.set_or_create_content(
-                    page,
-                    language,
-                    self.ctype,
-                    data
-                )
-        # the page is being added
-        else:
-            Content.objects.set_or_create_content(
+        import reversion
+        with reversion.create_revision():
+            Content.objects.save_content_if_changed(
                 page,
                 language,
                 self.ctype,

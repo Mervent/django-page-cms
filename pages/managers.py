@@ -126,7 +126,7 @@ class ContentManager(models.Manager):
 
     PAGE_CONTENT_DICT_KEY = "page_content_dict_%d_%s_%d"
 
-    def set_or_create_content(self, page, language, ctype, body):
+    def save_content_if_changed(self, page, language, ctype, body):
         """Set or create a :class:`Content <pages.models.Content>` for a
         particular page and language.
 
@@ -138,40 +138,13 @@ class ContentManager(models.Manager):
         try:
             content = self.filter(page=page, language=language,
                                   type=ctype).latest('creation_date')
+            if content.body == body:
+                return content
             content.body = body
         except self.model.DoesNotExist:
             content = self.model(page=page, language=language, body=body,
                                  type=ctype)
         content.save()
-        return content
-
-    def create_content_if_changed(self, page, language, ctype, body):
-        """Create a :class:`Content <pages.models.Content>` for a particular
-        page and language only if the content has changed from the last
-        time.
-
-        :param page: the concerned page object.
-        :param language: the wanted language.
-        :param ctype: the content type.
-        :param body: the content of the Content object.
-        """
-        try:
-            content = self.filter(page=page, language=language,
-                                  type=ctype).latest('creation_date')
-            if content.body == body:
-                return content
-        except self.model.DoesNotExist:
-            pass
-        content = self.create(page=page, language=language, body=body,
-                type=ctype)
-
-        # Delete old revisions
-        if settings.PAGE_CONTENT_REVISION_DEPTH:
-            oldest_content = self.filter(page=page, language=language,
-                type=ctype).order_by('-creation_date')[settings.PAGE_CONTENT_REVISION_DEPTH:]
-            for c in oldest_content:
-                c.delete()
-
         return content
 
     def get_content_object(self, page, language, ctype):

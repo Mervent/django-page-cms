@@ -4,6 +4,7 @@ from django.utils.safestring import SafeText
 from django.template import TemplateSyntaxError
 from django.conf import settings
 from django.utils.text import unescape_string_literal
+from reversion.models import Version
 
 from pages import settings as pages_settings
 from pages.models import Content, Page
@@ -194,14 +195,11 @@ show_absolute_url = register.inclusion_tag('pages/content.html',
 def show_revisions(context, page, content_type, lang=None):
     """Render the last 10 revisions of a page content with a list using
         the ``pages/revisions.html`` template"""
-    if (not pages_settings.PAGE_CONTENT_REVISION or
-            content_type in pages_settings.PAGE_CONTENT_REVISION_EXCLUDE_LIST):
-        return {'revisions': None}
-    revisions = Content.objects.filter(page=page, language=lang,
-                                type=content_type).order_by('-creation_date')
-    if len(revisions) < 2:
-        return {'revisions': None}
-    return {'revisions': revisions[0:10]}
+
+    content = Content.objects.filter(page=page, language=lang, type=content_type).last()
+    revisions = Version.objects.get_for_object(content).prefetch_related('revision')
+
+    return {'revisions': revisions}
 show_revisions = register.inclusion_tag('pages/revisions.html',
                                         takes_context=True)(show_revisions)
 

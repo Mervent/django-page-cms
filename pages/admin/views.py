@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 """Pages admin views"""
+from reversion.models import Version
+
 from pages import settings
 from pages.models import Page, Content
 from pages.utils import get_placeholders
@@ -102,11 +104,13 @@ def traduction(request, page_id, language_id):
 traduction = staff_member_required(traduction)
 
 
-def get_content(request, page_id, content_id):
-    """Get the content for a particular page"""
-    content = Content.objects.get(pk=content_id)
-    return HttpResponse(content.body)
-get_content = staff_member_required(get_content)
+def get_reversion_content(request, page_id, reversion_id):
+    """In truth we don't use page_id here because we already
+        got unique reversion_id for content needed.
+        So it's still here as legacy from Gerbi cms"""
+    version = Version.objects.get(pk=reversion_id)
+    return HttpResponse(version.field_dict['body'])
+get_reversion_content = staff_member_required(get_reversion_content)
 
 
 @csrf_exempt

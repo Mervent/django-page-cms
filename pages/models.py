@@ -1,4 +1,5 @@
 """Django page CMS ``models``."""
+import reversion
 
 from pages.cache import cache
 from pages.utils import get_placeholders, normalize_url, get_now
@@ -504,6 +505,7 @@ class Page(MPTTModel):
         return "Page without id"
 
 
+@reversion.register()
 @python_2_unicode_compatible
 class Content(models.Model):
     """A block of content, tied to a :class:`Page <pages.models.Page>`,
