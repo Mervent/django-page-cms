@@ -110,7 +110,7 @@ class PageManager(TreeManager):
                 return None
 
         try:
-            return self.on_site().get(complete_slug='%s' % stripped if stripped else '/')
+            return self.on_site().from_complete_slug(complete_slug='%s' % stripped if stripped else '/')
         except self.model.DoesNotExist:
             return None
 
@@ -118,7 +118,7 @@ class PageManager(TreeManager):
         return self.on_site().filter(slug=slug)
 
     def from_complete_slug(self, complete_slug):
-        return self.filter(complete_slug=complete_slug)
+        return self.on_site().filter(complete_slug=complete_slug)
 
 
 class ContentManager(models.Manager):
