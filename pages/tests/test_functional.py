@@ -532,6 +532,36 @@ class FunctionnalTestCase(TestCase):
         # Make sure the content response we got was in french
         self.assertTrue(b'Auteur' in response.content)
 
+    def test_move_page_should_fail_on_slug_collision(self):
+        c = self.get_admin_client()
+        c.login(username='batiste', password='b')
+
+        page_data = self.get_new_page_data()
+        page_data['slug'] = 'root'
+        response = c.post(add_url, page_data)
+        self.assertEqual(response.status_code, 302)
+
+        root_page = Page.objects.from_slug('root').first()
+        page_data['slug'] = 'page1'
+        page_data['position'] = 'first-child'
+        page_data['target'] = root_page.id
+        response = c.post(add_url, page_data)
+        self.assertEqual(response.status_code, 302)
+
+        page_data = self.get_new_page_data()
+        page_data['slug'] = 'page1'
+        response = c.post(add_url, page_data)
+        self.assertEqual(response.status_code, 302)
+
+        page_move = Page.objects.from_path('page1', lang='en-us')
+        url = reverse("admin:page-move-page", args=[page_move.id])
+        response = c.post(url, {'position': 'first-child', 'target': root_page.id})
+        self.assertEqual(response.status_code, 200)
+        page_move.refresh_from_db()
+        # By current design timestamp appends to page complete_slug if complete_slug is not unique
+        # So we should check that it's not ending with own slug
+        self.assertFalse(page_move.complete_slug.endswith(page_move.slug))
+
     def test_view_context(self):
         """
         Test that the default view can only return the context

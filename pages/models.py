@@ -177,7 +177,12 @@ class Page(MPTTModel):
         if settings.PAGE_HIDE_SITES and self.sites.count() == 0:
             self.sites.add(Site.objects.get(pk=global_settings.SITE_ID))
 
+        # If slug already exists in database (on move for example)
+        # we will make our slug unquie by appending timestamp to the end
         self.complete_slug = self.build_complete_slug(self.parent, self.slug)
+        if Page.objects.from_complete_slug(self.complete_slug).exclude(id=self.id).exists():
+            self.complete_slug = '{}-{}'.format(self.complete_slug, int(get_now().timestamp()))
+
         super(Page, self).save(*args, **kwargs)
 
         # If our cached URL changed we need to update all descendants to
