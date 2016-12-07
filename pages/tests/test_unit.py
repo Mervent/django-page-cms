@@ -325,6 +325,12 @@ class UnitTestCase(TestCase):
 
         reg.registry = []
 
+    def test_get_page_from_complete_slug(self):
+        page1 = self.new_page(content={'slug': 'root', 'title': 'hello'})
+        page2 = self.new_page(content={'slug': 'page1', 'title': 'hello'}, parent=page1)
+        self.assertEqual(Page.objects.from_complete_slug(page2.get_complete_slug()).first(), page2)
+
+
     def test_page_methods(self):
         """Test that some methods run properly."""
         page1 = self.new_page(content={'slug': 'page1', 'title': 'hello'})

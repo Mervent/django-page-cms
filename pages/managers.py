@@ -117,6 +117,9 @@ class PageManager(TreeManager):
     def from_slug(self, slug):
         return self.on_site().filter(slug=slug)
 
+    def from_complete_slug(self, complete_slug):
+        return self.filter(complete_slug=complete_slug)
+
 
 class ContentManager(models.Manager):
     """:class:`Content <pages.models.Content>` manager methods"""
