@@ -280,7 +280,7 @@ class UnitTestCase(TestCase):
         self.assertEqual(remove_slug('/hello/world/'), 'hello')
         self.assertEqual(remove_slug('hello'), None)
 
-    def test_move_to_should_refresh_cached_url(self):
+    def test_move_to_should_refresh_complete_slug(self):
         page1 = self.new_page(content={'slug': 'page1'})
         page2 = self.new_page(content={'slug': 'page2'})
         expected_url = 'page1/page2'

@@ -112,9 +112,9 @@ class Page(MPTTModel):
     redirect_to = models.ForeignKey('self', null=True, blank=True,
         related_name='redirected_pages')
 
-    title = models.CharField(_('title'), max_length=200, help_text=_('This title is also used for navigation menu items.'))
     slug = models.SlugField(_('slug'), max_length=150, help_text=_('This is used to build the URL for this page'))
-    cached_url = models.CharField(_('Cached URL'), max_length=255, blank=True, editable=False, default='', db_index=True)
+    complete_slug = models.CharField(_('complete slug'), max_length=255, blank=True, editable=False, default='',
+                                     db_index=True, help_text=_('internal field to build the full path URL'))
 
     # Managers
     objects = PageManager()
@@ -138,12 +138,28 @@ class Page(MPTTModel):
         self._is_first_root = None
         self._complete_slug = None
         super(Page, self).__init__(*args, **kwargs)
-        self._original_cached_url = self.cached_url
+        self._original_complete_slug = self.complete_slug
         self.override_url = None
+
+    def build_complete_slug(self, parent=None, slug=None):
+        """
+            Builds complete for page slug using parent and its slug
+            or using provided arguments. Returns complete slug as str
+        """
+        if not parent:
+            parent = self.parent
+        if not slug:
+            slug = self.slug
+
+        if not parent:
+            complete_slug = '/%s' % slug
+        else:
+            complete_slug = '%s/%s' % (parent.complete_slug, self.slug)
+        return complete_slug
 
     def save(self, *args, **kwargs):
         """
-            Overridden save method which updates the ``cached_url`` attribute of
+            Overridden save method which updates the ``complete_slug`` attribute of
             this page and all subpages. Quite expensive when called with a page
             high up in the tree.
         """
@@ -170,35 +186,30 @@ class Page(MPTTModel):
         cached_page_urls = {}
 
         # determine own URL
-        if self.override_url:
-            self.cached_url = self.override_url
-        elif self.is_root_node():
-            self.cached_url = '/%s' % self.slug
-        else:
-            self.cached_url = '%s/%s' % (self.parent.cached_url, self.slug)
+        self.complete_slug = self.build_complete_slug()
 
-        cached_page_urls[self.id] = self.cached_url
+        cached_page_urls[self.id] = self.complete_slug
         super(Page, self).save(*args, **kwargs)
 
         # If our cached URL changed we need to update all descendants to
         # reflect the changes. Since this is a very expensive operation
-        # on large sites we'll check whether our cached_url actually changed
+        # on large sites we'll check whether our complete_slug actually changed
         # or if the updates weren't navigation related:
-        if self.cached_url == self._original_cached_url:
+        if self.complete_slug == self._original_complete_slug:
             return
 
         pages = self.get_descendants().order_by('lft')
 
         for page in pages:
             if page.override_url:
-                page.cached_url = page.override_url
+                page.complete_slug = page.override_url
             else:
                 # cannot be root node by definition
-                page.cached_url = '%s/%s' % (
+                page.complete_slug = '%s/%s' % (
                     cached_page_urls[page.parent_id],
                     page.slug)
 
-            cached_page_urls[page.id] = page.cached_url
+            cached_page_urls[page.id] = page.complete_slug
             super(Page, page).save()  # do not recurse
 
     save.alters_data = True
@@ -391,8 +402,6 @@ class Page(MPTTModel):
         # TODO: Remove that dirty hacking with rerouting content
         if ctype == 'slug':
             return self.slug
-        elif ctype == 'title':
-            return self.title
 
         return Content.objects.get_content(self, language, ctype,
             language_fallback)
@@ -403,7 +412,6 @@ class Page(MPTTModel):
         This is used by the haystack framework to build the search index."""
         placeholders = get_placeholders(self.get_template())
         exposed_content = []
-        exposed_content.append(self.title)
         for lang in self.get_languages():
             for p in placeholders:
                 content = self.get_content(lang, p.ctype, False)
@@ -438,14 +446,25 @@ class Page(MPTTModel):
 
         :param language: the wanted url language.
         """
+        if self.is_first_root():
+            # this is used to allow users to change URL of the root
+            # page. The language prefix is not usable here.
+            try:
+                return reverse('pages-root')
+            except Exception:
+                pass
+        url = self.get_complete_slug(language)
         if not language:
             language = settings.PAGE_DEFAULT_LANGUAGE
         if settings.PAGE_USE_LANGUAGE_PREFIX:
-            return reverse('pages-details-by-path', args=[language, self.get_complete_slug()])
-        return reverse('pages-details-by-path', args=[self.get_complete_slug()])
+            return reverse('pages-details-by-path',
+                args=[language, url])
+        else:
+            return reverse('pages-details-by-path', args=[url])
 
     def get_absolute_url(self, language=None):
         """Alias for `get_url_path`.
+
         :param language: the wanted url language.
         """
         return self.get_url_path(language=language)
@@ -458,7 +477,7 @@ class Page(MPTTModel):
         # TODO:  Remove that ugly lstrip without breaking anything
         if hideroot and settings.PAGE_HIDE_ROOT_SLUG and self.is_first_root():
             return ''
-        return self.cached_url.lstrip('/')
+        return self.complete_slug.lstrip('/')
 
     def slug_with_level(self, language=None):
         """Display the slug of the page prepended with insecable
@@ -468,6 +487,19 @@ class Page(MPTTModel):
             for n in range(0, self.level):
                 level += '&nbsp;&nbsp;&nbsp;'
         return mark_safe(level + self.slug)
+
+    def title(self, language=None, fallback=True):
+        """
+        Return the title of the page depending on the given language.
+
+        :param language: wanted language, if not defined default is used.
+        :param fallback: if ``True``, the slug will also be searched in \
+        other languages.
+        """
+        if not language:
+            language = settings.PAGE_DEFAULT_LANGUAGE
+
+        return self.get_content(language, 'title', language_fallback=fallback)
 
     # Formating methods
 

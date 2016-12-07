@@ -312,7 +312,7 @@ class FunctionnalTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
 
         response = c.post(add_url, page_data)
-        # we cannot create 2 pages with the same cached_url
+        # we cannot create 2 pages with the same complete_slug
         self.assertEqual(response.status_code, 200)
 
     def test_directory_slug(self):
