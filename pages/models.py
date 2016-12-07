@@ -181,14 +181,7 @@ class Page(MPTTModel):
         if settings.PAGE_HIDE_SITES and self.sites.count() == 0:
             self.sites.add(Site.objects.get(pk=global_settings.SITE_ID))
 
-
-
-        cached_page_urls = {}
-
-        # determine own URL
         self.complete_slug = self.build_complete_slug()
-
-        cached_page_urls[self.id] = self.complete_slug
         super(Page, self).save(*args, **kwargs)
 
         # If our cached URL changed we need to update all descendants to
@@ -204,12 +197,8 @@ class Page(MPTTModel):
             if page.override_url:
                 page.complete_slug = page.override_url
             else:
-                # cannot be root node by definition
-                page.complete_slug = '%s/%s' % (
-                    cached_page_urls[page.parent_id],
-                    page.slug)
+                page.complete_slug = page.build_complete_slug()
 
-            cached_page_urls[page.id] = page.complete_slug
             super(Page, page).save()  # do not recurse
 
     save.alters_data = True
