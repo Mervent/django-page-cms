@@ -253,18 +253,6 @@ class ContentManager(models.Manager):
         else:
             return content
 
-    def get_page_ids_by_slug(self, slug):
-        """Return all page's id matching the given slug.
-        This function also returns pages that have an old slug
-        that match.
-
-        :param slug: the wanted slug.
-        """
-        ids = self.filter(type='slug', body=slug).values('page_id').annotate(
-            max_creation_date=Max('creation_date')
-        )
-        return [content['page_id'] for content in ids]
-
 
 class PageAliasManager(models.Manager):
     """:class:`PageAlias <pages.models.PageAlias>` manager."""

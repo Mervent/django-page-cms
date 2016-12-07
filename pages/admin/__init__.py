@@ -29,7 +29,7 @@ class PageAdmin(admin.ModelAdmin):
     """Page Admin class."""
 
     # these mandatory fields are not versioned
-    mandatory_placeholders = ()
+    mandatory_placeholders = ('title', 'slug')
     general_fields = ['title', 'slug', 'status', 'target',
         'position', 'freeze_date', 'template', 'language',
         'redirect_to', 'redirect_to_url']
@@ -222,6 +222,11 @@ class PageAdmin(admin.ModelAdmin):
         # bound the form
         language = get_language_from_request(request)
         form.base_fields['language'].initial = language
+        if obj:
+            initial_slug = obj.slug
+            initial_title = obj.title(language=language, fallback=False)
+            form.base_fields['slug'].initial = initial_slug
+            form.base_fields['title'].initial = initial_title
 
         template = get_template_from_request(request, obj)
         page_templates = settings.get_page_templates()

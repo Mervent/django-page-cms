@@ -219,4 +219,3 @@ PAGE_TESTS_SAVE_SCREENSHOTS = getattr(settings, 'PAGE_TESTS_SAVE_SCREENSHOTS',
 
 # If you want to redirect to new page url
 PAGE_REDIRECT_OLD_SLUG = getattr(settings, 'PAGE_REDIRECT_OLD_SLUG', False)
-

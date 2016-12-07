@@ -126,7 +126,7 @@ class RegressionTestCase(TestCase):
         request = get_request_mock()
         temp = loader.get_template('pages/tests/test4.html')
         render = temp.render({})
-        self.assertTrue(page.title in render)
+        self.assertTrue(page.title() in render)
 
     def test_bug_178(self):
         """http://code.google.com/p/django-page-cms/issues/detail?id=178"""

@@ -39,7 +39,7 @@ class TemplateTestCase(TestCase):
         pl1 = """{% load pages_tags %}{% get_page "get-page-slug" as toto %}{{ toto }}"""
         template = self.get_template_from_string(pl1)
         self.assertEqual(render(template, context), 'None')
-        self.new_page(slug='get-page-slug')
+        self.new_page({'slug': 'get-page-slug'})
         self.assertEqual(render(template, context), 'get-page-slug')
 
     def test_placeholder_all_syntaxes(self):
@@ -53,7 +53,7 @@ class TemplateTestCase(TestCase):
 
         pl1 = """{% load pages_tags %}{% placeholder title as hello %}{{ hello }}"""
         template = self.get_template_from_string(pl1)
-        self.assertEqual(render(template, context), page.title)
+        self.assertEqual(render(template, context), page.title())
 
         # to be sure to raise an errors in parse template content
         setattr(settings, "DEBUG", True)
@@ -116,14 +116,14 @@ class TemplateTestCase(TestCase):
     def test_parsed_template(self):
         """Test the parsed template syntax."""
         setattr(settings, "DEBUG", True)
-        page = self.new_page(title='<b>{{ "hello"|capfirst }}</b>')
+        page = self.new_page({'title': '<b>{{ "hello"|capfirst }}</b>'})
         page.save()
         context = {'current_page': page, 'lang': 'en-us'}
         pl_parsed = """{% load pages_tags %}{% placeholder title parsed %}"""
         template = self.get_template_from_string(pl_parsed)
         self.assertEqual(render(template, context), '<b>Hello</b>')
         setattr(settings, "DEBUG", False)
-        page = self.new_page(title='<b>{{ "hello"|wrong_filter }}</b>')
+        page = self.new_page({'title': '<b>{{ "hello"|wrong_filter }}</b>'})
         context = {'current_page': page, 'lang': 'en-us'}
         self.assertEqual(render(template, context), '')
 
@@ -152,25 +152,26 @@ class TemplateTestCase(TestCase):
         """
         Test the {% get_content %} template tag
         """
-        page_data = {'content': 'test'}
-        page = self.new_page(page_data, title='test', slug='test')
+        page_data = {'title': 'test', 'slug': 'test'}
+        page = self.new_page(page_data)
 
         context = {'page': page}
         template = Template('{% load pages_tags %}'
-                            '{% get_content page "content" "en-us" as content %}'
+                            '{% get_content page "title" "en-us" as content %}'
                             '{{ content }}')
-        self.assertEqual(render(template, context), page_data['content'])
+        self.assertEqual(render(template, context), page_data['title'])
         template = Template('{% load pages_tags %}'
-                            '{% get_content page "content" as content %}'
+                            '{% get_content page "title" as content %}'
                             '{{ content }}')
-        self.assertEqual(render(template, context), page_data['content'])
+        self.assertEqual(render(template, context), page_data['title'])
 
     def test_get_content_tag_bug(self):
         """
         Make sure that {% get_content %} use the "lang" context variable if
         no language string is provided.
         """
-        page = self.new_page(title='test', slug='english')
+        page_data = {'title': 'test', 'slug': 'english'}
+        page = self.new_page(page_data)
         Content(page=page, language='en-us', type='content', body='english').save()
         Content(page=page, language='fr-ch', type='content', body='french').save()
         self.assertEqual(page.slug, 'english')
@@ -249,7 +250,7 @@ class TemplateTestCase(TestCase):
         Test a {% show_absolute_url %} template tag  bug.
         """
         page_data = {'title': 'test', 'slug': 'test'}
-        page = self.new_page(**page_data)
+        page = self.new_page(page_data)
         Content(page=page, language='en-us', type='content', body='english').save()
         Content(page=page, language='fr-ch', type='content', body='french').save()
 
@@ -270,7 +271,7 @@ class TemplateTestCase(TestCase):
 
     def test_get_page_from_id_context_variable(self):
         """Test get_page_from_string_or_id with an id context variable."""
-        page = self.new_page(slug='test')
+        page = self.new_page({'slug': 'test'})
         self.assertEqual(get_page_from_string_or_id(str(page.id)), page)
 
         content = Content(page=page, language='en-us', type='test_id',
@@ -285,7 +286,7 @@ class TemplateTestCase(TestCase):
 
     def test_get_page_from_slug_context_variable(self):
         """Test get_page_from_string_or_id with an slug context variable."""
-        page = self.new_page(slug='test')
+        page = self.new_page({'slug': 'test'})
 
         context = {'current_page': page}
         template = Template('{% load pages_tags %}'
@@ -304,9 +305,9 @@ class TemplateTestCase(TestCase):
         context = {}
         pl1 = """{% load pages_tags %}{% get_page 3 as toto %}{{ toto }}"""
         template = self.get_template_from_string(pl1)
-        self.new_page(slug='get-page-slug1')
-        self.new_page(slug='get-page-slug2')
-        self.new_page(slug='get-page-slug3')
+        self.new_page({'slug': 'get-page-slug1'})
+        self.new_page({'slug': 'get-page-slug2'})
+        self.new_page({'slug': 'get-page-slug3'})
         self.assertEqual(render(template, context), 'get-page-slug3')
 
     def test_get_page_template_tag_with_variable_containing_page_id(self):
@@ -315,7 +316,8 @@ class TemplateTestCase(TestCase):
         pl1 = ('{% load pages_tags %}{% placeholder somepage as page_id %}'
             '{% get_page page_id as toto %}{{ toto }}')
         template = self.get_template_from_string(pl1)
-        page = self.new_page({'id': 1, 'somepage': '1'}, slug='get-page-slug')
+        page = self.new_page({'id': 1, 'slug': 'get-page-slug',
+            'somepage': '1'})
         context = {'current_page': page}
         self.assertEqual(render(template, context), 'get-page-slug')
 
@@ -325,7 +327,8 @@ class TemplateTestCase(TestCase):
         pl1 = ('{% load pages_tags %}{% placeholder somepage as slug %}'
             '{% get_page slug as toto %}{{ toto }}')
         template = self.get_template_from_string(pl1)
-        page = self.new_page({'somepage': 'get-page-slug'}, slug='get-page-slug')
+        page = self.new_page({'slug': 'get-page-slug', 'somepage':
+            'get-page-slug'})
         context = {'current_page': page}
         self.assertEqual(render(template, context), 'get-page-slug')
 
@@ -339,7 +342,7 @@ class TemplateTestCase(TestCase):
           "{% endblock %}")
 
         template = self.get_template_from_string(tpl)
-        page = self.new_page(slug='get-page-slug')
+        page = self.new_page({'slug': 'get-page-slug'})
         context = {'current_page': page}
         self.assertEqual(render(template, context), 'get-page-slug')
 

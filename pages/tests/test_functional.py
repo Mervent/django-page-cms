@@ -37,7 +37,7 @@ class FunctionnalTestCase(TestCase):
         )
         assert(slug_content is not None)
         page = slug_content.page
-        self.assertEqual(page.title, page_data['title'])
+        self.assertEqual(page.title(), page_data['title'])
         self.assertEqual(page.slug, page_data['slug'])
         self.assertNotEqual(page.last_modification_date, None)
 
@@ -116,7 +116,7 @@ class FunctionnalTestCase(TestCase):
         response = c.post(reverse("admin:pages_page_change", args=[page.id]), page_data)
         self.assertRedirects(response, changelist_url)
         page = Page.objects.get(id=page.id)
-        self.assertEqual(page.title, 'changed title')
+        self.assertEqual(page.title(), 'changed title')
         body = Content.objects.get_content(page, 'en-us', 'body')
         self.assertEqual(body, 'changed body')
 
@@ -210,8 +210,6 @@ class FunctionnalTestCase(TestCase):
         self.assertRedirects(response, changelist_url)
 
         page = Page.objects.all()[0]
-        Content(page=page, type='content', body='english content', language='en-us').save()
-        page = Page.objects.all()[0]
         self.assertEqual(page.get_languages(), ['en-us'])
 
         # test the language cache
@@ -228,9 +226,10 @@ class FunctionnalTestCase(TestCase):
             self.assertContains(response, 'value="de"')
 
         # add a french version of the same page
-        Content(page=page, type='content', body='french content', language='fr-ch').save()
-        #response = c.post(reverse("admin:pages_page_change", args=[page.id]), page_data)
-        #self.assertRedirects(response, changelist_url)
+        page_data["language"] = 'fr-ch'
+        page_data["title"] = 'french title'
+        response = c.post(reverse("admin:pages_page_change", args=[page.id]), page_data)
+        self.assertRedirects(response, changelist_url)
 
         # test that the frontend view use the good parameters
         # I cannot find a way of setting the accept-language HTTP
@@ -245,16 +244,16 @@ class FunctionnalTestCase(TestCase):
         c = self.get_admin_client()
         c.cookies["django_language"] = 'fr-ch'
         response = c.get(page.get_url_path())
-        #self.assertContains(response, 'french content')
+        self.assertContains(response, 'french title')
         self.assertContains(response, 'lang="fr-ch"')
 
-        #self.assertNotContains(response, 'english title')
+        self.assertNotContains(response, 'english title')
 
         # this should be mapped to the fr-ch content
         c = self.get_admin_client()
         c.cookies["django_language"] = 'fr-fr'
         response = c.get(page.get_url_path())
-        #self.assertContains(response, 'french title')
+        self.assertContains(response, 'french title')
         self.assertContains(response, 'lang="fr-ch"')
 
     def test_revision(self):
@@ -370,9 +369,9 @@ class FunctionnalTestCase(TestCase):
         page = Content.objects.get_content_slug_by_slug('page-1').page
         self.assertEqual(page.status, Page.DRAFT)
 
-        url = reverse("admin:page-modify-content", args=[page.id, "content", "en-us"])
+        url = reverse("admin:page-modify-content", args=[page.id, "title", "en-us"])
         response = c.post(url, {'content': 'test content'})
-        self.assertEqual(page.get_content(ctype='content', language='en-us'), 'test content')
+        self.assertEqual(page.title(), 'test content')
 
         # TODO: realy test these methods
         url = reverse("admin:page-traduction", args=[page.id, "en-us"])
@@ -384,7 +383,7 @@ class FunctionnalTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
 
         url = reverse("admin:page-get-content", args=[
-            page.id, Content.objects.get_content_object(page=page, language='en-us', ctype='content').id
+            page.id, Content.objects.get_content_object(page=page, language='en-us', ctype='title').id
         ])
         response = c.get(url)
         self.assertEqual(response.status_code, 200)
@@ -815,8 +814,8 @@ class FunctionnalTestCase(TestCase):
         # TODO: Fix this, it's not recommended behavior by google.
         # TODO: We should redirect from one page to another
         c = self.get_admin_client()
-        page1 = self.new_page(slug='root')
-        page2 = self.new_page(slug='other')
+        page1 = self.new_page(content={'slug': 'root'})
+        page2 = self.new_page(content={'slug': 'other'})
         response = c.get(self.get_page_url('other'))
         self.assertEqual(response.status_code, 200)
         response = c.get(self.get_page_url('other/'))
@@ -827,9 +826,9 @@ class FunctionnalTestCase(TestCase):
         Test the sitemap class
         """
         c = self.get_admin_client()
-        page1 = self.new_page(slug='english-slug')
+        page1 = self.new_page(content={'slug': 'english-slug'})
         page1.save()
-        page2 = self.new_page(slug='french-slug')
+        page2 = self.new_page(content={'slug': 'french-slug'})
         page2.save()
 
         response = c.get('/sitemap.xml')
