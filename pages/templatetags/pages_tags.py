@@ -198,7 +198,8 @@ def show_revisions(context, page, content_type, lang=None):
     if pages_settings.PAGE_CONTENT_REVISION:
         from reversion.models import Version
         content = Content.objects.filter(page=page, language=lang, type=content_type).last()
-        revisions = Version.objects.get_for_object(content).prefetch_related('revision')
+        if content:
+            revisions = Version.objects.get_for_object(content).prefetch_related('revision')
 
     return {'revisions': revisions}
 show_revisions = register.inclusion_tag('pages/revisions.html',
