@@ -99,6 +99,7 @@ INSTALLED_APPS = (
     'mptt',
     'pages',
     'taggit',
+    'reversion',
     TEST_PROJ + '.documents',
     'django.contrib.staticfiles',
     # these 2 package don't create any dependecies
@@ -164,6 +165,7 @@ PAGE_TEMPLATES = (
 )
 
 PAGE_SANITIZE_USER_INPUT = True
+PAGE_CONTENT_REVISION = True
 
 PAGE_USE_SITE_ID = True
 

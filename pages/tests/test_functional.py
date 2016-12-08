@@ -355,6 +355,38 @@ class FunctionnalTestCase(TestCase):
         response = c.get(self.get_page_url('same-slug/same-slug'))
         self.assertContains(response, "children title", 3)
 
+    def test_reversion_integration(self):
+        from reversion.models import Version
+        from pages.templatetags.pages_tags import show_revisions
+
+        language = 'en-us'
+        c = self.get_admin_client()
+        c.login(username='batiste', password='b')
+        page_data = self.get_new_page_data()
+        page_data['body'] = 'old content'
+        response = c.post(add_url, page_data)
+        self.assertRedirects(response, changelist_url)
+
+        page = Page.objects.all().first()
+        content = Content.objects.get_content_object(page=page, language=language, ctype='body')
+        page_data['body'] = 'new content'
+        response = c.post(reverse("admin:pages_page_change", args=[page.id]), page_data)
+        self.assertRedirects(response, changelist_url)
+        versions = Version.objects.get_for_object(content).order_by('id')
+        self.assertEqual(len(versions), 2)
+
+        # show_revision should return versions from reversion
+        revisions = show_revisions(context=None, page=page, content_type='body', lang=language)
+        self.assertIn('old content', str(revisions))
+        self.assertIn('new content', str(revisions))
+
+        # get_reversion_content should return content body by reversion_id
+        response = c.get(reverse('admin:page-get-reversion-content', args=[page.id, versions[0].id]))
+        self.assertContains(response, 'old content')
+        response = c.get(reverse('admin:page-get-reversion-content', args=[page.id, versions[1].id]))
+        self.assertContains(response, 'new content')
+
+
     def test_page_admin_view(self):
         """Test page admin view"""
         c = self.get_admin_client()
