@@ -155,8 +155,11 @@ class ContentManager(models.Manager):
             'type': ctype,
             'page': page
         }
-        if page.freeze_date:
-            params['creation_date__lte'] = page.freeze_date
+        if page.freeze_date and settings.PAGE_CONTENT_REVISION:
+            from reversion.models import Version
+            content = self.get(**params)
+            version = Version.objects.get_for_object(content).filter(revision__date_created__lte=page.freeze_date).last()
+            return self.model(**version.field_dict)
         return self.filter(**params).latest()
 
     def get_content(self, page, language, ctype, language_fallback=False):
