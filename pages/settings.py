@@ -71,25 +71,10 @@ def _default_tagging_field():
     return TaggableManager(blank=True)
 PAGE_TAGGING_FIELD = getattr(settings, 'PAGE_TAGGING_FIELD', _default_tagging_field)
 
-# Set ``PAGE_UNIQUE_SLUG_REQUIRED`` to ``True`` to enforce unique slug names
-# for all pages.
-PAGE_UNIQUE_SLUG_REQUIRED = getattr(settings, 'PAGE_UNIQUE_SLUG_REQUIRED',
-                                    False)
-
-# Set ``PAGE_UNIQUE_SLUG_REQUIRED`` to ``True`` to rename automaticaly a duplicate slug
-# another page as an identic slug
-PAGE_AUTOMATIC_SLUG_RENAMING = getattr(settings, 'PAGE_AUTOMATIC_SLUG_RENAMING',
-                                    False)
-
 
 # Set ``PAGE_CONTENT_REVISION`` to ``False`` to disable the recording of
 # pages revision information in the database
 PAGE_CONTENT_REVISION = getattr(settings, 'PAGE_CONTENT_REVISION', False)
-
-# Define the number of revisions too keep in the database. Set to None
-# if you want to keep everything
-PAGE_CONTENT_REVISION_DEPTH = getattr(settings,
-    'PAGE_CONTENT_REVISION_DEPTH', 10)
 
 # A list tuples that defines the languages that pages can be translated into.
 #
@@ -157,16 +142,6 @@ PAGE_HIDE_SITES = getattr(settings, 'PAGE_HIDE_SITES', False)
 PAGE_USE_LANGUAGE_PREFIX = getattr(settings, 'PAGE_USE_LANGUAGE_PREFIX',
                                                                         False)
 
-# Set this to True to raise an error 404 if the used URL path is
-# not strictly the same than the page.
-PAGE_USE_STRICT_URL = getattr(settings, 'PAGE_USE_STRICT_URL', False)
-
-# Assign a list of placeholders to PAGE_CONTENT_REVISION_EXCLUDE_LIST
-# to exclude them from the revision process.
-PAGE_CONTENT_REVISION_EXCLUDE_LIST = getattr(settings,
-    'PAGE_CONTENT_REVISION_EXCLUDE_LIST', ()
-)
-
 # URL that handles pages media and uses <STATIC_URL>/pages by default.
 PAGES_MEDIA_URL = get_setting('PAGES_MEDIA_URL')
 if not PAGES_MEDIA_URL:
@@ -216,6 +191,3 @@ PAGE_API_ENABLED = getattr(settings, 'PAGE_API_ENABLED', False)
 # If you want to see screenshots from selenium tests override this
 PAGE_TESTS_SAVE_SCREENSHOTS = getattr(settings, 'PAGE_TESTS_SAVE_SCREENSHOTS',
                                      False)
-
-# If you want to redirect to new page url
-PAGE_REDIRECT_OLD_SLUG = getattr(settings, 'PAGE_REDIRECT_OLD_SLUG', False)

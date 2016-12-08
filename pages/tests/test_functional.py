@@ -319,7 +319,6 @@ class FunctionnalTestCase(TestCase):
         """
         Test diretory slugs
         """
-        self.set_setting("PAGE_UNIQUE_SLUG_REQUIRED", False)
         c = self.get_admin_client()
         c.login(username='batiste', password='b')
 

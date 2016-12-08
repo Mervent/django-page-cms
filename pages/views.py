@@ -52,14 +52,6 @@ class Details(object):
 
         current_page = self.resolve_page(request, context, is_staff)
 
-        # Do redirect to new page (if enabled)
-        if settings.PAGE_REDIRECT_OLD_SLUG and current_page:
-            url = current_page.get_absolute_url(language=lang)
-            slug = current_page.get_complete_slug(language=lang)
-            current_url = request.get_full_path()
-            if url != path and url + '/' != current_url and slug != path:
-                return HttpResponsePermanentRedirect(url)
-
         # if no pages has been found, we will try to find it via an Alias
         if not current_page:
             redirection = self.resolve_alias(request, path, lang)
@@ -107,17 +99,17 @@ class Details(object):
         # try to see if it might be a delegation page.
         # To do that we remove the right part of the url and try again
         # to find a page that match
-        if not settings.PAGE_USE_STRICT_URL:
+
+        path = remove_slug(path)
+        while path is not None:
+            page = Page.objects.from_path(
+                path, lang,
+                exclude_drafts=(not is_staff))
+            # find a match. Is the page delegating?
+            if page:
+                if page.delegate_to:
+                    return page
             path = remove_slug(path)
-            while path is not None:
-                page = Page.objects.from_path(
-                    path, lang,
-                    exclude_drafts=(not is_staff))
-                # find a match. Is the page delegating?
-                if page:
-                    if page.delegate_to:
-                        return page
-                path = remove_slug(path)
 
         return None
 
