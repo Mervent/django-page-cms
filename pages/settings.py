@@ -84,7 +84,7 @@ PAGE_AUTOMATIC_SLUG_RENAMING = getattr(settings, 'PAGE_AUTOMATIC_SLUG_RENAMING',
 
 # Set ``PAGE_CONTENT_REVISION`` to ``False`` to disable the recording of
 # pages revision information in the database
-PAGE_CONTENT_REVISION = getattr(settings, 'PAGE_CONTENT_REVISION', True)
+PAGE_CONTENT_REVISION = getattr(settings, 'PAGE_CONTENT_REVISION', False)
 
 # Define the number of revisions too keep in the database. Set to None
 # if you want to keep everything

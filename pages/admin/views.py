@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 """Pages admin views"""
-from reversion.models import Version
-
 from pages import settings
 from pages.models import Page, Content
 from pages.utils import get_placeholders
@@ -56,11 +54,11 @@ def modify_content(request, page_id, content_type, language_id):
             raise Http404
         page = Page.objects.get(pk=page_id)
         if settings.PAGE_CONTENT_REVISION:
-            Content.objects.create_content_if_changed(page, language_id,
-                                                      content_type, content)
+            import reversion
+            with reversion.create_revision():
+                Content.objects.save_content_if_changed(page, language_id, content_type, content)
         else:
-            Content.objects.set_or_create_content(page, language_id,
-                                                  content_type, content)
+            Content.objects.save_content_if_changed(page, language_id, content_type, content)
         page.invalidate()
         # to update last modification date
         page.save()
@@ -108,8 +106,11 @@ def get_reversion_content(request, page_id, reversion_id):
     """In truth we don't use page_id here because we already
         got unique reversion_id for content needed.
         So it's still here as legacy from Gerbi cms"""
-    version = Version.objects.get(pk=reversion_id)
-    return HttpResponse(version.field_dict['body'])
+    if settings.PAGE_CONTENT_REVISION:
+        from reversion.models import Version
+        version = Version.objects.get(pk=reversion_id)
+        return HttpResponse(version.field_dict['body'])
+    raise Http404
 get_reversion_content = staff_member_required(get_reversion_content)
 
 

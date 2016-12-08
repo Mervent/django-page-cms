@@ -166,8 +166,16 @@ class PlaceholderNode(template.Node):
             language = settings.PAGE_DEFAULT_LANGUAGE
 
         # the page is being changed
-        import reversion
-        with reversion.create_revision():
+        if settings.PAGE_CONTENT_REVISION:
+            import reversion
+            with reversion.create_revision():
+                Content.objects.save_content_if_changed(
+                    page,
+                    language,
+                    self.ctype,
+                    data
+                )
+        else:
             Content.objects.save_content_if_changed(
                 page,
                 language,
