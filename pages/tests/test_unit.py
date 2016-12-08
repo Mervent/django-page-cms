@@ -221,28 +221,13 @@ class UnitTestCase(TestCase):
             kwargs={'path': 'page1'})
         )
 
-    def test_revision_depth(self):
-        """
-        Check that PAGE_CONTENT_REVISION_DEPTH works.
-        """
-        page1 = self.new_page(content={'slug': 'page1'})
-        self.set_setting("PAGE_CONTENT_REVISION_DEPTH", 3)
-        Content.objects.create_content_if_changed(page1, 'en-us', 'rev-test', 'rev1')
-        Content.objects.create_content_if_changed(page1, 'en-us', 'rev-test', 'rev2')
-        Content.objects.create_content_if_changed(page1, 'en-us', 'rev-test', 'rev3')
-        Content.objects.create_content_if_changed(page1, 'en-us', 'rev-test', 'rev4')
-        self.assertEqual(Content.objects.filter(type='rev-test').count(), 3)
-        self.assertEqual(
-            Content.objects.filter(type='rev-test').latest('creation_date').body,
-            'rev4')
-
     def test_content_dict(self):
         """
         Check that content_dict method works.
         """
         page1 = self.new_page(content={'slug': 'page1'})
         page1.save()
-        c = Content.objects.create_content_if_changed(page1, 'en-us', 'body', 'test')
+        c = Content.objects.save_content_if_changed(page1, 'en-us', 'body', 'test')
         self.assertEqual(
             page1.content_by_language(language='en-us'),
             [c]

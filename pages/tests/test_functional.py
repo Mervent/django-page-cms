@@ -382,9 +382,6 @@ class FunctionnalTestCase(TestCase):
         response = c.get(url)
         self.assertEqual(response.status_code, 200)
 
-        url = reverse("admin:page-get-content", args=[
-            page.id, Content.objects.get_content_object(page=page, language='en-us', ctype='title').id
-        ])
         response = c.get(url)
         self.assertEqual(response.status_code, 200)
 
