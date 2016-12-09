@@ -37,6 +37,16 @@ class FunctionnalTestCase(TestCase):
         self.assertEqual(page.slug, page_data['slug'])
         self.assertNotEqual(page.last_modification_date, None)
 
+    def test_create_page_should_not_create_slug_content(self):
+        c = self.get_admin_client()
+
+        page_data = self.get_new_page_data()
+        response = c.post(add_url, page_data)
+        self.assertRedirects(response, changelist_url)
+        page = Page.objects.get(slug=page_data['slug'])
+        with self.assertRaises(Content.DoesNotExist):
+            Content.objects.get(page=page, type='slug', language='en-us')
+
     def test_delete_page(self):
         """Create a page, then delete it."""
         c = self.get_admin_client()

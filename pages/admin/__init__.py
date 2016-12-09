@@ -29,7 +29,7 @@ class PageAdmin(admin.ModelAdmin):
     """Page Admin class."""
 
     # these mandatory fields are not versioned
-    mandatory_placeholders = ('title', 'slug')
+    mandatory_placeholders = ('title', )
     general_fields = ['title', 'slug', 'status', 'target',
         'position', 'freeze_date', 'template', 'language',
         'redirect_to', 'redirect_to_url']
