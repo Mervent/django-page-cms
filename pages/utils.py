@@ -141,18 +141,17 @@ def slugify(value, allow_unicode=False):
     """
     Convert to ASCII if 'allow_unicode' is False. Convert spaces to hyphens.
     Remove characters that aren't alphanumerics, underscores, or hyphens.
-    Also strip leading and trailing whitespace.
+    Convert to lowercase. Also strip leading and trailing whitespace.
     Copyright: https://docs.djangoproject.com/en/1.9/_modules/django/utils/text/#slugify
     TODO: replace after stopping support for Django 1.8
-    TODO: add awesome-slugify support
     """
     value = force_text(value)
     if allow_unicode:
         value = unicodedata.normalize('NFKC', value)
-        value = re.sub('[^\w\s-]', '', value, flags=re.U).strip()
+        value = re.sub('[^\w\s-]', '', value, flags=re.U).strip().lower()
         return mark_safe(re.sub('[-\s]+', '-', value, flags=re.U))
     value = unicodedata.normalize('NFKD', value).encode('ascii', 'ignore').decode('ascii')
-    value = re.sub('[^\w\s-]', '', value).strip()
+    value = re.sub('[^\w\s-]', '', value).strip().lower()
     return mark_safe(re.sub('[-\s]+', '-', value))
 
 slugify = allow_lazy(slugify, six.text_type, SafeText)
