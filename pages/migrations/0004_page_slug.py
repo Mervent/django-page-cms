@@ -8,7 +8,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('pages', '0004_auto_20161203_1815'),
+        ('pages', '0003_page_uuid'),
     ]
 
     operations = [
@@ -20,8 +20,7 @@ class Migration(migrations.Migration):
         ),
         migrations.AddField(
             model_name='page',
-            name='title',
-            field=models.CharField(default='', help_text='This title is also used for navigation menu items.', max_length=200, verbose_name='title'),
-            preserve_default=False,
+            name='complete_slug',
+            field=models.CharField(blank=True, db_index=True, default='', editable=False, help_text='internal field to build the full path URL', max_length=255, verbose_name='complete slug'),
         ),
     ]
