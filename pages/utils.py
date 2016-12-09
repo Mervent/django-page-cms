@@ -148,10 +148,10 @@ def slugify(value, allow_unicode=False):
     value = force_text(value)
     if allow_unicode:
         value = unicodedata.normalize('NFKC', value)
-        value = re.sub('[^\w\s-]', '', value, flags=re.U).strip().lower()
+        value = re.sub('[^\w\s-]', '', value, flags=re.U).strip()
         return mark_safe(re.sub('[-\s]+', '-', value, flags=re.U))
     value = unicodedata.normalize('NFKD', value).encode('ascii', 'ignore').decode('ascii')
-    value = re.sub('[^\w\s-]', '', value).strip().lower()
+    value = re.sub('[^\w\s-]', '', value).strip()
     return mark_safe(re.sub('[-\s]+', '-', value))
 
 slugify = allow_lazy(slugify, six.text_type, SafeText)

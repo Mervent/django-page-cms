@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Page CMS forms"""
 from django import forms
-from django.template.defaultfilters import slugify
+from pages.utils import slugify
 from django.utils.translation import ugettext_lazy as _
 from django.conf import settings as global_settings
 
