@@ -33,7 +33,7 @@ class RegressionTestCase(TestCase):
         page_data['slug'] = 'page1'
         # create a page for the example otherwise you will get a Http404 error
         response = c.post(add_url, page_data)
-        page1 = Content.objects.get_content_slug_by_slug('page1').page
+        page1 = Page.objects.get(slug='page1')
 
         page1.status = Page.DRAFT
         page1.save()
@@ -46,7 +46,7 @@ class RegressionTestCase(TestCase):
         http://code.google.com/p/django-page-cms/issues/detail?id=97
         """
         c = self.get_admin_client()
-        c.login(username= 'batiste', password='b')
+        c.login(username='batiste', password='b')
         page_data = self.get_new_page_data()
         page_data['slug'] = 'page1'
         # create a page for the example otherwise you will get a Http404 error
@@ -107,7 +107,7 @@ class RegressionTestCase(TestCase):
         page_data['title'] = 'title-en-us'
         page_data['slug'] = 'slug'
         response = c.post(add_url, page_data)
-        page = Content.objects.get_content_slug_by_slug('slug').page
+        page = Page.objects.get(slug='slug')
         Content(page=page, type='title', language='fr-ch',
             body="title-fr-ch").save()
 
@@ -161,7 +161,7 @@ class RegressionTestCase(TestCase):
         page_data['slug'] = 'page1'
         page_data['title'] = 'title &amp;'
         response = c.post(add_url, page_data)
-        page1 = Content.objects.get_content_slug_by_slug('page1').page
+        page1 = Page.objects.get(slug='page1')
         page1.invalidate()
         c = Content.objects.get_content(page1, 'en-us', 'title')
         self.assertEqual(c, page_data['title'])

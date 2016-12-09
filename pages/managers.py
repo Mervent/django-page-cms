@@ -37,6 +37,9 @@ class PageManager(TreeManager):
             return self.filter(sites=site_id)
         return self.all()
 
+    def get(self, **kwargs):
+        return self.on_site().get(**kwargs)
+
     def root(self):
         """Return a :class:`QuerySet` of pages without parent."""
         return self.on_site().filter(parent__isnull=True)
@@ -212,25 +215,6 @@ class ContentManager(models.Manager):
                 if lang[0] in content_dict and content_dict[lang[0]]:
                     return content_dict[lang[0]]
         return ''
-
-    def get_content_slug_by_slug(self, slug):
-        """
-        Dummy method while migrating to new design
-        TODO: Remove me and fix tests
-        """
-        from pages.models import Page
-        page = Page.objects.on_site().filter(slug=slug).first()
-        return page and self.model(page=page)
-
-        content = self.filter(type='slug', body=slug)
-        if settings.PAGE_USE_SITE_ID:
-            content = content.filter(page__sites__id=global_settings.SITE_ID)
-        try:
-            content = content.latest('creation_date')
-        except self.model.DoesNotExist:
-            return None
-        else:
-            return content
 
 
 class PageAliasManager(models.Manager):

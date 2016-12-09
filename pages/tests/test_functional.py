@@ -32,11 +32,7 @@ class FunctionnalTestCase(TestCase):
         page_data = self.get_new_page_data()
         response = c.post(add_url, page_data)
         self.assertRedirects(response, changelist_url)
-        slug_content = Content.objects.get_content_slug_by_slug(
-            page_data['slug']
-        )
-        assert(slug_content is not None)
-        page = slug_content.page
+        page = Page.objects.from_slug(page_data['slug']).first()
         self.assertEqual(page.title(), page_data['title'])
         self.assertEqual(page.slug, page_data['slug'])
         self.assertNotEqual(page.last_modification_date, None)
@@ -47,11 +43,7 @@ class FunctionnalTestCase(TestCase):
         page_data = self.get_new_page_data()
         response = c.post(add_url, page_data)
         self.assertRedirects(response, changelist_url)
-        slug_content = Content.objects.get_content_slug_by_slug(
-            page_data['slug']
-        )
-        assert(slug_content is not None)
-        page = slug_content.page
+        page = Page.objects.from_slug(page_data['slug']).first()
         pageCount = Page.objects.count()
         page.delete()
         self.assertEqual(Page.objects.count(), pageCount - 1)
@@ -141,7 +133,7 @@ class FunctionnalTestCase(TestCase):
         response = c.post(add_url, page_data)
         self.assertRedirects(response, changelist_url)
 
-        page = Content.objects.get_content_slug_by_slug(page_data['slug']).page
+        page = Page.objects.get(slug=page_data['slug'])
         self.assertEqual(page.sites.count(), 1)
         self.assertEqual(page.sites.all()[0].id, 2)
 
@@ -151,15 +143,19 @@ class FunctionnalTestCase(TestCase):
         self.assertRedirects(response, changelist_url)
 
         # we cannot get a slug that doesn't exist
-        content = Content.objects.get_content_slug_by_slug("this doesn't exist")
+        content = Page.objects.from_slug("this doesn't exist").first()
         self.assertEqual(content, None)
+        with self.assertRaises(Page.DoesNotExist):
+            Page.objects.get(slug="this doesn't exist")
 
         # we cannot get the data posted on another site
-        content = Content.objects.get_content_slug_by_slug(page_data['slug'])
+        content = Page.objects.from_slug(page_data['slug']).first()
         self.assertEqual(content, None)
+        with self.assertRaises(Page.DoesNotExist):
+            Page.objects.get(slug='slug')
 
         setattr(settings, "SITE_ID", 3)
-        page = Content.objects.get_content_slug_by_slug(page_data['slug']).page
+        page = Page.objects.get(slug=page_data['slug'])
         self.assertEqual(page.sites.count(), 1)
         self.assertEqual(page.sites.all()[0].id, 3)
 
@@ -338,7 +334,7 @@ class FunctionnalTestCase(TestCase):
         # this assert test that the creation fails as wanted
         self.assertEqual(response.status_code, 200)
 
-        page1 = Content.objects.get_content_slug_by_slug(page_data['slug']).page
+        page1 = Page.objects.from_slug(page_data['slug']).first()
         self.assertEqual(page1.id, page.id)
 
         page_data['title'] = 'children title'
@@ -393,11 +389,11 @@ class FunctionnalTestCase(TestCase):
         page_data = self.get_new_page_data()
         page_data['slug'] = 'page-1'
         response = c.post(add_url, page_data)
-        page = Content.objects.get_content_slug_by_slug('page-1').page
+        page = Page.objects.get(slug='page-1')
         self.assertEqual(page.status, 1)
         change_status_url = reverse("admin:page-change-status", args=[page.id])
         response = c.post(change_status_url , {'status':Page.DRAFT})
-        page = Content.objects.get_content_slug_by_slug('page-1').page
+        page = Page.objects.get(slug='page-1')
         self.assertEqual(page.status, Page.DRAFT)
 
         url = reverse("admin:page-modify-content", args=[page.id, "title", "en-us"])
@@ -486,15 +482,15 @@ class FunctionnalTestCase(TestCase):
         page_data = self.get_new_page_data()
         page_data['slug'] = 'root'
         response = c.post(add_url, page_data)
-        root_page = Content.objects.get_content_slug_by_slug('root').page
+        root_page = Page.objects.get(slug='root')
         page_data['position'] = 'first-child'
         page_data['target'] = root_page.id
         page_data['slug'] = 'child-1'
         response = c.post(add_url, page_data)
         self.assertEqual(response.status_code, 302)
-        c1 = Content.objects.get_content_slug_by_slug('child-1').page
+        c1 = Page.objects.get(slug='child-1')
 
-        root_page = Content.objects.get_content_slug_by_slug('root').page
+        root_page = Page.objects.get(slug='root')
         self.assertEqual(len(root_page.valid_targets()), 0)
         self.assertEqual(str(c1.valid_targets()), "[<Page: root>]")
 
@@ -520,18 +516,18 @@ class FunctionnalTestCase(TestCase):
         page_data['slug'] = 'root'
         response = c.post(add_url, page_data)
 
-        root_page = Content.objects.get_content_slug_by_slug('root').page
+        root_page = Page.objects.from_slug('root').first()
         page_data['position'] = 'first-child'
         page_data['target'] = root_page.id
         page_data['slug'] = 'child-1'
         response = c.post(add_url, page_data)
 
-        child_1 = Content.objects.get_content_slug_by_slug('child-1').page
+        child_1 = Page.objects.from_slug('child-1').first()
 
         page_data['slug'] = 'child-2'
         response = c.post(add_url, page_data)
 
-        child_2 = Content.objects.get_content_slug_by_slug('child-2').page
+        child_2 = Page.objects.from_slug('child-2').first()
 
         self.assertEqual(str(Page.objects.all()),
             "[<Page: root>, <Page: child-2>, <Page: child-1>]")
@@ -599,7 +595,7 @@ class FunctionnalTestCase(TestCase):
         page_data['slug'] = 'page1'
         # create a page for the example otherwise you will get a Http404 error
         response = c.post(add_url, page_data)
-        page1 = Content.objects.get_content_slug_by_slug('page1').page
+        page1 = Page.objects.get(slug='page1')
 
         from pages.views import details
         request = get_request_mock()
@@ -622,20 +618,20 @@ class FunctionnalTestCase(TestCase):
 
         response = c.post(add_url, page_data)
 
-        root_page = Content.objects.get_content_slug_by_slug('root').page
+        root_page = Page.objects.get(slug='root')
         self.assertTrue(root_page.is_first_root())
         page_data['position'] = 'first-child'
         page_data['target'] = root_page.id
         page_data['slug'] = 'child-1'
         response = c.post(add_url, page_data)
 
-        child_1 = Content.objects.get_content_slug_by_slug('child-1').page
+        child_1 = Page.objects.get(slug='child-1')
         self.assertFalse(child_1.is_first_root())
 
         page_data['slug'] = 'child-2'
         response = c.post(add_url, page_data)
 
-        child_2 = Content.objects.get_content_slug_by_slug('child-2').page
+        child_2 = Page.objects.get(slug='child-2')
 
         self.assertEqual(str(Page.objects.all()),
             "[<Page: root>, <Page: child-2>, <Page: child-1>]")
@@ -718,9 +714,9 @@ class FunctionnalTestCase(TestCase):
         self.assertEqual(str(Page.objects.navigation()),
             "[<Page: page1>, <Page: page2>, <Page: page3>]")
 
-        p1 = Content.objects.get_content_slug_by_slug('page1').page
-        p2 = Content.objects.get_content_slug_by_slug('page2').page
-        p3 = Content.objects.get_content_slug_by_slug('page3').page
+        p1 = Page.objects.get(slug='page1')
+        p2 = Page.objects.get(slug='page2')
+        p3 = Page.objects.get(slug='page3')
 
         p2.move_to(p1, 'left')
         p2.save()
@@ -734,9 +730,9 @@ class FunctionnalTestCase(TestCase):
         self.assertEqual(str(Page.objects.navigation()),
             "[<Page: page3>, <Page: page2>, <Page: page1>]")
 
-        p1 = Content.objects.get_content_slug_by_slug('page1').page
-        p2 = Content.objects.get_content_slug_by_slug('page2').page
-        p3 = Content.objects.get_content_slug_by_slug('page3').page
+        p1 = Page.objects.get(slug='page1')
+        p2 = Page.objects.get(slug='page2')
+        p3 = Page.objects.get(slug='page3')
 
         p3.move_to(p1, 'first-child')
         p2.move_to(p1, 'first-child')
@@ -744,7 +740,7 @@ class FunctionnalTestCase(TestCase):
         self.assertEqual(str(Page.objects.navigation()),
             "[<Page: page1>]")
 
-        p3 = Content.objects.get_content_slug_by_slug('page3').page
+        p3 = Page.objects.get(slug='page3')
         p3.move_to(p1, 'left')
 
         self.assertEqual(str(Page.objects.navigation()),

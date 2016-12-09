@@ -130,6 +130,4 @@ class TestCase(TestCase):
         page_data = self.get_new_page_data(draft=draft)
         response = client.post(reverse("admin:pages_page_add"), page_data)
         self.assertRedirects(response, reverse("admin:pages_page_changelist"))
-        slug_content = Content.objects.get_content_slug_by_slug(
-            page_data['slug'])
-        return slug_content.page
+        return Page.objects.get(slug=page_data['slug'])
