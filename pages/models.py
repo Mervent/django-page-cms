@@ -178,9 +178,11 @@ class Page(MPTTModel):
 
         # If slug already exists in database (on move for example)
         # we will make our slug unquie by appending timestamp to the end
+        next = 1
         self.complete_slug = self.build_complete_slug(self.parent, self.slug)
-        if Page.objects.from_complete_slug(self.complete_slug).exclude(id=self.id).exists():
-            self.complete_slug = '{}-{}'.format(self.complete_slug, int(get_now().timestamp()))
+        while Page.objects.from_complete_slug(self.complete_slug).exclude(id=self.id).exists():
+            self.complete_slug = self.build_complete_slug(self.parent, self.slug) + '-' + str(next)
+            next += 1
 
         super(Page, self).save(*args, **kwargs)
 

@@ -560,7 +560,7 @@ class FunctionnalTestCase(TestCase):
         # Make sure the content response we got was in french
         self.assertTrue(b'Auteur' in response.content)
 
-    def test_move_page_should_fail_on_slug_collision(self):
+    def test_move_page_should_rename_page_on_slug_collision(self):
         c = self.get_admin_client()
         c.login(username='batiste', password='b')
 
@@ -586,9 +586,8 @@ class FunctionnalTestCase(TestCase):
         response = c.post(url, {'position': 'first-child', 'target': root_page.id})
         self.assertEqual(response.status_code, 200)
         page_move.refresh_from_db()
-        # By current design timestamp appends to page complete_slug if complete_slug is not unique
-        # So we should check that it's not ending with own slug
-        self.assertFalse(page_move.complete_slug.endswith(page_move.slug))
+        # By current design '-1/-2/-3/etc' appends to page complete_slug if complete_slug is not unique
+        self.assertTrue(page_move.complete_slug.endswith('-1'))
 
     def test_view_context(self):
         """
