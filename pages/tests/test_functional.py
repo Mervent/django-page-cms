@@ -47,6 +47,17 @@ class FunctionnalTestCase(TestCase):
         with self.assertRaises(Content.DoesNotExist):
             Content.objects.get(page=page, type='slug', language='en-us')
 
+    def test_slug_shound_not_be_converted_to_lowercase(self):
+        c = self.get_admin_client()
+
+        page_data = self.get_new_page_data()
+        page_data['slug'] = 'UPPER SLUG'
+        response = c.post(add_url, page_data)
+        self.assertRedirects(response, changelist_url)
+
+        page = Page.objects.get(id=1)
+        self.assertEqual(page.slug, 'UPPER-SLUG')
+
     def test_delete_page(self):
         """Create a page, then delete it."""
         c = self.get_admin_client()
