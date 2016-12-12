@@ -3,14 +3,12 @@
 from django import forms
 from pages.utils import slugify
 from django.utils.translation import ugettext_lazy as _
-from django.conf import settings as global_settings
 
 from pages import settings
-from pages.models import Page, Content
+from pages.models import Page
 
 from pages.urlconf_registry import get_choices
 from pages.widgets import LanguageChoiceWidget
-import collections
 
 error_dict = {
     'another_page_error': _('Another page with this slug already exists'),
@@ -19,47 +17,6 @@ error_dict = {
     'sibling_error': _('A sibling with this slug already exists'),
     'sibling_root_error': _('A sibling with this slug already exists at the root level'),
 }
-
-def automatic_slug_renaming(slug, is_slug_safe):
-    """Helper to add numbers to slugs"""
-
-    if not isinstance(is_slug_safe, collections.Callable):
-        raise TypeError('is_slug_safe must be callable')
-
-    if is_slug_safe(slug):
-       return slug
-
-    count = 2
-    new_slug = slug + "-" + str(count)
-    while not is_slug_safe(new_slug):
-        count = count + 1
-        new_slug = slug + "-" + str(count)
-    return new_slug
-
-def unique_slug_required(form, slug):
-    """Enforce a unique slug accross all pages and websistes."""
-
-    if hasattr(form, 'instance') and form.instance.id:
-        if Content.objects.exclude(page=form.instance).filter(
-            body=slug, type="slug").count():
-            raise forms.ValidationError(error_dict['another_page_error'])
-    elif Content.objects.filter(body=slug, type="slug").count():
-        raise forms.ValidationError(error_dict['another_page_error'])
-    return slug
-
-def intersect_sites_method(form):
-    """Return a method to intersect sites."""
-    if settings.PAGE_USE_SITE_ID:
-        if settings.PAGE_HIDE_SITES:
-            site_ids = [global_settings.SITE_ID]
-        else:
-            site_ids = [int(x) for x in form.data.getlist('sites')]
-        def intersects_sites(sibling):
-            return sibling.sites.filter(id__in=site_ids).count() > 0
-    else:
-        def intersects_sites(sibling):
-            return True
-    return intersects_sites
 
 def make_form(model_, placeholders):
 
@@ -122,13 +79,13 @@ def make_form(model_, placeholders):
 
             parent = None
             if self.instance.id:
-                parent = Page.objects.on_site().get(id=self.instance.id).parent
+                parent = Page.objects.get(id=self.instance.id).parent
             elif target:
-                parent = Page.objects.on_site().get(id=target)
+                parent = Page.objects.get(id=target)
 
             new_url = Page.build_complete_slug(parent, slug)
 
-            if Page.objects.on_site().filter(complete_slug=new_url).exclude(id=self.instance.id).exists():
+            if Page.objects.from_complete_slug(complete_slug=new_url).exclude(id=self.instance.id).exists():
                 raise forms.ValidationError('This URL is already taken by another active page.')
             return slug
 
