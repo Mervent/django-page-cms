@@ -18,7 +18,7 @@
             {% endif %}
             <a href="{{ page.id }}/" class="title changelink
             {% if page.pagelink_broken or page.externallink_broken %}broken{% endif %}">
-            {{ page.title }} <br/> <span class="help">{{ page.get_complete_slug }}</span>
+            {{ page.title }} <br/> <span class="help">{{ page.get_absolute_url }}</span>
             {% if page.redirect_to or page.redirect_to_url %}
             <img class="redirected" src="{{ PAGES_MEDIA_URL }}images/icons/redirect.gif" alt="redirected" />{% endif %}</a>
 
