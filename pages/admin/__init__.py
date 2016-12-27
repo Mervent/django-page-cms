@@ -333,8 +333,6 @@ class PageAdmin(admin.ModelAdmin):
             pages = Page.objects.filter(pk__in=page_ids)
         else:
             pages = Page.objects.root()
-        if settings.PAGE_HIDE_SITES:
-            pages = pages.filter(sites=global_settings.SITE_ID)
 
         pages = pages.prefetch_related('children')
         pages = Paginator(pages, self.list_per_page).page(page)
