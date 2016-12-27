@@ -328,8 +328,8 @@ class PageAdmin(admin.ModelAdmin):
         query = request.POST.get('q', '').strip()
 
         if query:
-            page_ids = list(set([c.page.pk for c in
-                Content.objects.filter(body__icontains=query)]))
+            page_ids = list(set([c.page.pk for c in Content.objects.filter(body__icontains=query)]))
+            page_ids += list(set([c.pk for c in Page.objects.filter(slug__icontains=query)]))
             pages = Page.objects.filter(pk__in=page_ids)
         else:
             pages = Page.objects.root()
