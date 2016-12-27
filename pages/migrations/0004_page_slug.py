@@ -15,7 +15,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='page',
             name='slug',
-            field=models.SlugField(default='', help_text='This is used to build the URL for this page', max_length=150, verbose_name='slug'),
+            field=models.SlugField(default='', help_text='This is used to build the URL for this page', max_length=250, verbose_name='slug'),
             preserve_default=False,
         ),
         migrations.AddField(
