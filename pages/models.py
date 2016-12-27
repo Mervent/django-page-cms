@@ -111,7 +111,7 @@ class Page(MPTTModel):
     redirect_to = models.ForeignKey('self', null=True, blank=True,
         related_name='redirected_pages')
 
-    slug = models.SlugField(_('slug'), max_length=250, help_text=_('This is used to build the URL for this page'))
+    slug = models.SlugField(_('slug'), max_length=255, help_text=_('This is used to build the URL for this page'))
     complete_slug = models.CharField(_('complete slug'), max_length=255, blank=True, editable=False, default='',
                                      db_index=True, help_text=_('internal field to build the full path URL'))
 
