@@ -21,7 +21,15 @@
     </div>
 </form>
 </div>
-
+<p class="paginator">
+	{% for i in pages.paginator.page_range %}
+		{% if i == pages.number %}
+			<span class="this-page">{{ i }}</span>
+		{% else %}
+			<a href="?p={{ i }}">{{ i }}</a>
+		{% endif %}
+	{% endfor %}
+</p>
 <form method="post" action="">
 {% csrf_token %}
 {% if action_form and actions_on_top and cl.full_result_count %}{% admin_actions %}{% endif %}

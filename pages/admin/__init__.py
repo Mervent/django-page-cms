@@ -12,6 +12,7 @@ from pages.admin.views import move_page
 
 from collections import defaultdict
 from django.contrib import admin
+from django.core.paginator import Paginator
 from django.utils.translation import ugettext_lazy as _
 from django.utils.encoding import force_text
 from django.conf import settings as global_settings
@@ -57,6 +58,7 @@ class PageAdmin(admin.ModelAdmin):
         insert_point = general_fields.index('status') + 1
 
     page_templates = settings.get_page_templates()
+    list_per_page = 25
 
     fieldsets = (
         [_('General'), {
@@ -322,6 +324,7 @@ class PageAdmin(admin.ModelAdmin):
             return self.admin_site.login(request)
         language = get_language_from_request(request)
 
+        page = request.GET.get('p', 1)
         query = request.POST.get('q', '').strip()
 
         if query:
@@ -332,6 +335,9 @@ class PageAdmin(admin.ModelAdmin):
             pages = Page.objects.root()
         if settings.PAGE_HIDE_SITES:
             pages = pages.filter(sites=global_settings.SITE_ID)
+
+        pages = pages.prefetch_related('children')
+        pages = Paginator(pages, self.list_per_page).page(page)
 
         context = {
             'can_publish': request.user.has_perm('pages.can_publish'),
